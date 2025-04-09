@@ -1,0 +1,38 @@
+.about-image{
+    max-width: 600px;
+    width: 100%;
+}
+.about-geogap-title{
+    font-size: 26px;
+    font-weight: 700;
+}
+.about-geogap-text{
+    color: #747474;
+    font-size: 16px;
+}
+
+.seperator{
+    width: 90%;
+    height: 1px;
+    margin-top: 40px;
+    background-color: #747474;
+    opacity: 0.1;
+}
+
+
+@media(max-width: 1000px){
+    .about-wrapper{
+        align-items: center !important;
+        flex-direction: column !important;
+    }
+}
+@media(max-width: 550px){
+    .about-geogap-title{
+        font-size: 22px;
+        font-weight: 600;
+    }
+    .about-geogap-text{
+        font-size: 14px !important;
+        color: #747474;
+    }
+}
