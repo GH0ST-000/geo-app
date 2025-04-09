@@ -1,0 +1,154 @@
+/* Container Styles */
+.register-container {
+    display: flex;
+    flex-direction: row;
+    justify-content: center;
+    align-items: center;
+    gap: 5rem;
+    padding: 2rem;
+    margin: 2rem auto;
+    max-width: 1200px;
+}
+
+.register-form-container {
+    width: 100%;
+    max-width: 500px;
+}
+
+/* Form Elements */
+.create-user-title {
+    font-size: 24px;
+    font-weight: 500;
+    margin-bottom: 20px;
+    color: #000000;
+}
+
+.name-fields-container {
+    display: flex;
+    gap: 1rem;
+    margin-bottom: 1rem;
+}
+
+.name-field {
+    flex: 1;
+}
+
+.form-field {
+    margin-bottom: 15px;
+}
+
+.custom-textfield {
+    width: 100%;
+}
+
+.custom-textfield .MuiInputBase-root {
+    background-color: #fff !important;
+    color: #000000 !important;
+    border: 1px solid #EFF1F4;
+}
+
+.custom-textfield .MuiInputLabel-root {
+    color: black !important;
+    font-size: 14px;
+}
+
+.custom-textfield .MuiInputLabel-root.Mui-focused {
+    color: #348e38 !important;
+}
+
+.custom-textfield .MuiFilledInput-underline:before {
+    border-bottom: 2px solid white !important;
+}
+
+.custom-textfield .MuiFilledInput-underline:hover:before {
+    border-bottom: 2px solid #348e38 !important;
+}
+
+.custom-textfield .MuiFilledInput-underline:after {
+    border-bottom: 2px solid #348e38 !important;
+}
+
+.checkbox-container {
+    margin: 1rem 0;
+}
+
+.auth-redirect {
+    margin: 1rem 0;
+}
+
+.already-have-account {
+    font-size: 14px;
+    color: #333;
+}
+
+.auth-text {
+    color: #348e38;
+    cursor: pointer;
+    font-size: 14px;
+    font-weight: 500;
+}
+
+.register-btn {
+    background-color: #348e38;
+    color: #fff;
+    font-size: 14px;
+    padding: 10px 20px;
+    border: 1px solid #348e38;
+    border-radius: 4px;
+    width: 100%;
+    cursor: pointer;
+    transition: all 0.3s ease;
+}
+.loading-btn{
+    width: 100%;
+    background-color: #348e38 !important;
+    border: 1px solid #348e38 !important;
+}
+.register-btn:hover {
+    background-color: #fff;
+    color: #348e38;
+}
+
+.register-image-container {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+}
+
+.register-image {
+    width: 500px;
+    height: auto;
+    max-height: 380px;
+    object-fit: contain;
+}
+
+@media (max-width: 1124px) {
+    .register-container {
+        flex-direction: column;
+        justify-content: center;
+        align-items: center;
+        gap: 2rem;
+        padding: 1rem;
+    }
+
+    .register-image {
+        display: none;
+    }
+
+    .register-form-container {
+        width: 100%;
+        padding: 0 1rem;
+    }
+
+    .name-fields-container {
+        flex-direction: column;
+        gap: 15px;
+    }
+}
+
+@media (max-width: 768px) {
+    .register-btn {
+        padding: 12px;
+        font-size: 16px;
+    }
+}

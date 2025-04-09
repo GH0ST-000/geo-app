@@ -1,0 +1,65 @@
+.not-found-image{
+    width: auto;
+    height: 380px;
+}
+.not-found-btn{
+    border-radius: 8px;
+    padding: 10px 50px;
+    border: 1px solid #348e38;
+    color: #fff;
+    background-color: #348e38;
+    transition: background-color 0.3s ease, border 0.3s ease, color 0.3s ease;
+    margin-top: 20px;
+}
+.not-found-btn:hover{
+    background-color: #fff;
+    border: 1px solid #348e38;
+    color: #348e38;
+}
+.not-found-oops{
+    font-size: 40px;
+    font-weight: bold;
+    color: #1A2E35;
+    padding: 0;
+}
+
+.not-found-text{
+    font-size: 40px;
+    font-weight: normal;
+    padding: 0;
+    margin: 0;
+}
+.not-found-description{
+    font-size: 16px;
+    margin-top: 20px;
+    margin-bottom: 0;
+}
+
+@media(max-width: 550px){
+    .not-found-image{
+        width: auto;
+        height: 330px;
+    }
+    .not-found-text{
+        font-size: 24px;
+        text-align: center;
+    }
+    .not-found-oops{
+        font-size: 24px;
+        display: none;
+    }
+    .not-found-btn{
+        margin-left: 50%;
+        transform: translateX(-50%);
+    }
+    .not-found-description{
+        text-align: center;
+    }
+}
+
+@media(max-width: 480px){
+    .not-found-image{
+        width: 100% ;
+        height: auto;
+    }
+}

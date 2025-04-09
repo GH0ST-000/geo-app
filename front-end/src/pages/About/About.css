@@ -1,0 +1,104 @@
+.about-title{
+    font-size: 16px;
+    font-weight: 400;
+    letter-spacing: 2px;
+    line-height: 20px;
+    color: #348e38;
+}
+
+.about-description{
+    font-size: 14px;
+    text-align: start;
+    color: #348e38;
+}
+
+.about-text{
+    color: #181818;
+    font-size: 46px;
+    font-weight: 500;
+    line-height: 58px;
+    letter-spacing: 2px;
+}
+
+.step-title{
+    font-size: 20px;
+    line-height: 30px;
+    font-weight: 700;
+    color: #0F4229;
+}
+
+.step-text{
+    font-size: 16px;
+    font-weight: 400;
+    line-height: 25px;
+    color: #0F4229;
+}
+.custom-step-about-container{
+    position: relative;
+    border-radius: 8px;
+    padding: 54px 69px 53px 39px;
+    border: 7px solid #E7F5E9;
+}
+
+.step-quantity{
+    width: 60px;
+    height: 60px;
+    color: #fff;
+    border-radius: 50%;
+    background-color: #348e38;
+    font-size: 20px;
+    font-weight: 500;
+    position: absolute;
+    right: -30px;
+}
+@media (max-width: 1024px) {
+    .step-wrapper{
+        flex-direction: column;
+    }
+}
+
+@media (max-width: 600px) {
+    .step-title{
+        font-size: 16px;
+
+    }
+    .step-text{
+        font-size: 14px;
+        line-height: 16px;
+    }
+    .custom-step-about-container{
+        position: relative;
+        border-radius: 8px;
+        border: 7px solid #E7F5E9;
+    }
+
+    .custom-step-about-container{
+        position: relative;
+        border-radius: 8px;
+        padding: 34px 49px 23px 19px;
+        border: 7px solid #E7F5E9;
+    }
+}
+
+@media (max-width: 500px) {
+    .step-title{
+        font-size: 14px;
+        line-height: 16px;
+
+    }
+    .step-text{
+        font-size: 12px;
+    }
+    .about-title{
+        font-size: 16px;
+    }
+
+    .about-text{
+        font-size: 36px;
+
+    }
+    .step-quantity{
+        width: 50px;
+        height: 50px;
+    }
+}
