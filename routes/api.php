@@ -2,7 +2,7 @@
 
 use App\Http\Controllers\Api\AuthController;
 use App\Http\Controllers\Api\MunicipalityController;
-use Illuminate\Http\Request;
+use App\Http\Controllers\Api\ProfileController;
 use Illuminate\Support\Facades\Route;
 
 // Auth routes
@@ -13,7 +13,11 @@ Route::post('/auth/login', [AuthController::class, 'login']);
 Route::group(['middleware' => 'auth:api'], function() {
     Route::post('/auth/logout', [AuthController::class, 'logout']);
     Route::post('/auth/refresh', [AuthController::class, 'refresh']);
-    Route::get('/auth/me', [AuthController::class, 'me']);
+    Route::get('/user', [AuthController::class, 'user']);
+    Route::post('/auth/password/update', [AuthController::class, 'updatePassword']);
+
+    // Profile routes
+    Route::post('/profile/update', [ProfileController::class, 'update']);
 });
 
 // Public Municipality routes
