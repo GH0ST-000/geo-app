@@ -7,12 +7,15 @@ use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Foundation\Auth\User as Authenticatable;
 use Illuminate\Notifications\Notifiable;
 use Laravel\Sanctum\HasApiTokens;
+use Spatie\MediaLibrary\HasMedia;
+use Spatie\MediaLibrary\InteractsWithMedia;
+use Spatie\MediaLibrary\MediaCollections\Models\Media;
 use Tymon\JWTAuth\Contracts\JWTSubject;
 
-class User extends Authenticatable implements JWTSubject
+class User extends Authenticatable implements JWTSubject, HasMedia
 {
     /** @use HasFactory<\Database\Factories\UserFactory> */
-    use HasApiTokens, HasFactory, Notifiable;
+    use HasApiTokens, HasFactory, Notifiable, InteractsWithMedia;
 
     /**
      * The attributes that are mass assignable.
@@ -27,6 +30,7 @@ class User extends Authenticatable implements JWTSubject
         'city',
         'phone',
         'user_type',
+        'profile_picture',
     ];
 
     /**
@@ -38,7 +42,9 @@ class User extends Authenticatable implements JWTSubject
         'password',
         'remember_token',
         'created_at',
-        'updated_at'
+        'updated_at',
+        'profile_picture',
+        'profile_picture_url'
     ];
 
     /**
@@ -72,5 +78,99 @@ class User extends Authenticatable implements JWTSubject
     public function getJWTCustomClaims(): array
     {
         return [];
+    }
+
+    /**
+     * Register media collections for the user
+     */
+    public function registerMediaCollections(): void
+    {
+        $this->addMediaCollection('profile_picture')
+            ->singleFile()
+            ->registerMediaConversions(function (Media $media) {
+                $this->addMediaConversion('thumb')
+                    ->width(150)
+                    ->height(150)
+                    ->keepOriginalImageFormat()
+                    ->nonQueued();
+
+                $this->addMediaConversion('medium')
+                    ->width(400)
+                    ->height(400)
+                    ->keepOriginalImageFormat()
+                    ->nonQueued();
+
+                $this->addMediaConversion('large')
+                    ->width(1200)
+                    ->height(1200)
+                    ->keepOriginalImageFormat()
+                    ->nonQueued();
+            });
+    }
+
+    /**
+     * Get profile picture URL
+     *
+     * @return string|null
+     */
+    public function getProfilePictureUrlAttribute()
+    {
+        // First try to get from Media Library
+        $media = $this->getFirstMedia('profile_picture');
+        if ($media) {
+            return $media->getUrl();
+        }
+
+        // Fall back to old profile_picture field if it exists
+        if ($this->profile_picture) {
+            return $this->profile_picture;
+        }
+
+        return null;
+    }
+
+    /**
+     * Get thumbnail URL
+     *
+     * @return string|null
+     */
+    public function getProfileThumbnailUrlAttribute()
+    {
+        $media = $this->getFirstMedia('profile_picture');
+        if ($media) {
+            return $media->getUrl('thumb');
+        }
+
+        return null;
+    }
+
+    /**
+     * Get medium-sized profile picture URL
+     *
+     * @return string|null
+     */
+    public function getProfileMediumUrlAttribute()
+    {
+        $media = $this->getFirstMedia('profile_picture');
+        if ($media) {
+            return $media->getUrl('medium');
+        }
+
+        return null;
+    }
+
+    /**
+     * Get large-sized profile picture URL
+     *
+     * @return string|null
+     */
+    public function getProfileLargeUrlAttribute()
+    {
+        $media = $this->getFirstMedia('profile_picture');
+        if ($media) {
+            return $media->getUrl('large');
+        }
+
+        return null;
     }
 }
