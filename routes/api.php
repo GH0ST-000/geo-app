@@ -18,6 +18,11 @@ Route::group(['middleware' => 'auth:api'], function() {
 
     // Profile routes
     Route::post('/profile/update', [ProfileController::class, 'update']);
+    
+    // Admin routes
+    Route::group(['middleware' => 'admin', 'prefix' => 'admin'], function() {
+        Route::post('/users/{userId}/verify', [\App\Http\Controllers\Api\AdminController::class, 'updateUserVerification']);
+    });
 });
 
 // Public Municipality routes

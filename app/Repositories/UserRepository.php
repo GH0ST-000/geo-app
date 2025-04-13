@@ -24,6 +24,17 @@ class UserRepository implements UserRepositoryInterface
     public function create(array $data)
     {
         $data['password'] = Hash::make($data['password']);
+        
+        // Initialize description as null if not provided
+        if (!isset($data['description']) || $data['description'] === '') {
+            $data['description'] = null;
+        }
+        
+        // Set default verification status
+        if (!isset($data['is_verified'])) {
+            $data['is_verified'] = false;
+        }
+        
         return $this->model->create($data);
     }
 
@@ -79,6 +90,16 @@ class UserRepository implements UserRepositoryInterface
              strpos($data['profile_picture'], '/var/folders/') !== false ||
              strpos($data['profile_picture'], 'php') !== false)) {
             unset($data['profile_picture']);
+        }
+        
+        // Ensure description is set to null if it's empty or not provided
+        if (!isset($data['description']) || $data['description'] === '') {
+            $data['description'] = null;
+        }
+        
+        // Handle is_verified field - make sure it's properly cast to boolean
+        if (isset($data['is_verified'])) {
+            $data['is_verified'] = filter_var($data['is_verified'], FILTER_VALIDATE_BOOLEAN);
         }
         
         $user->fill($data);

@@ -25,6 +25,7 @@ class AuthController extends Controller
             'password' => 'required|string|min:8',
             'city' => 'required|string|max:255',
             'phone' => 'required|string|max:255',
+            'description' => 'nullable|string',
         ]);
 
         if ($validator->fails()) {
