@@ -151,8 +151,22 @@ class ProfileController extends Controller
         // Add media URLs to the response
         $responseUser = $updatedUser->toArray();
         
-        // Only include the medium-sized profile picture URL
-        $responseUser['profile_picture_url'] = $updatedUser->profile_medium_url;
+        // Get profile picture URL with fallbacks
+        $mediaUrl = null;
+        $media = $updatedUser->getFirstMedia('profile_picture');
+        
+        if ($media) {
+            // Try medium size first
+            if ($media->hasGeneratedConversion('medium')) {
+                $mediaUrl = $media->getUrl('medium');
+            } 
+            // Fall back to original if medium doesn't exist
+            else {
+                $mediaUrl = $media->getUrl();
+            }
+        }
+        
+        $responseUser['profile_picture_url'] = $mediaUrl;
         
         // Remove the media collection from the response to keep it clean
         unset($responseUser['media']);
