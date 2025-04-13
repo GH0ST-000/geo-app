@@ -135,8 +135,13 @@ class User extends Authenticatable implements JWTSubject, HasMedia
     public function getProfileThumbnailUrlAttribute()
     {
         $media = $this->getFirstMedia('profile_picture');
-        if ($media) {
+        if ($media && $media->hasGeneratedConversion('thumb')) {
             return $media->getUrl('thumb');
+        }
+        
+        // Fall back to original
+        if ($media) {
+            return $media->getUrl();
         }
         
         return null;
@@ -150,8 +155,13 @@ class User extends Authenticatable implements JWTSubject, HasMedia
     public function getProfileMediumUrlAttribute()
     {
         $media = $this->getFirstMedia('profile_picture');
-        if ($media) {
+        if ($media && $media->hasGeneratedConversion('medium')) {
             return $media->getUrl('medium');
+        }
+        
+        // Fall back to original
+        if ($media) {
+            return $media->getUrl();
         }
 
         return null;
@@ -165,8 +175,13 @@ class User extends Authenticatable implements JWTSubject, HasMedia
     public function getProfileLargeUrlAttribute()
     {
         $media = $this->getFirstMedia('profile_picture');
-        if ($media) {
+        if ($media && $media->hasGeneratedConversion('large')) {
             return $media->getUrl('large');
+        }
+        
+        // Fall back to original
+        if ($media) {
+            return $media->getUrl();
         }
 
         return null;
