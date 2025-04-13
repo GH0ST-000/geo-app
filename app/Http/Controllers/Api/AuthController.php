@@ -70,22 +70,8 @@ class AuthController extends Controller
 
     public function refresh(): \Illuminate\Http\JsonResponse
     {
-        $user = Auth::user();
-        $userData = $user->toArray();
-        
-        // Add profile image URLs
-        $userData['profile_picture_url'] = $user->profile_thumbnail_url ?? $user->profile_picture_url;
-        
-        // Include all available image sizes
-        $userData['profile_images'] = [
-            'thumbnail' => $user->profile_thumbnail_url,
-            'medium' => $user->profile_medium_url,
-            'large' => $user->profile_large_url,
-            'original' => $user->profile_picture_url
-        ];
-        
         return response()->json([
-            'user' => $userData,
+            'user' => Auth::user(),
             'authorization' => [
                 'token' => Auth::refresh(),
                 'type' => 'bearer',
@@ -95,18 +81,7 @@ class AuthController extends Controller
 
     public function user(): \Illuminate\Http\JsonResponse
     {
-        $user = Auth::user();
-        $userData = $user->toArray();
-                
-        // Include all available image sizes
-        $userData['profile_images'] = [
-            'thumbnail' => $user->profile_thumbnail_url,
-            'medium' => $user->profile_medium_url,
-            'large' => $user->profile_large_url,
-            'original' => $user->profile_picture_url
-        ];
-        
-        return response()->json($userData);
+        return response()->json(Auth::user());
     }
 
     public function updatePassword(Request $request): \Illuminate\Http\JsonResponse

@@ -92,19 +92,9 @@ class UserRepository implements UserRepositoryInterface
             unset($data['profile_picture']);
         }
         
-        // Ensure description is set to null if it's empty or not provided
-        if (!isset($data['description']) || $data['description'] === '') {
-            $data['description'] = null;
-        }
-        
-        // Handle is_verified field - make sure it's properly cast to boolean
-        if (isset($data['is_verified'])) {
-            $data['is_verified'] = filter_var($data['is_verified'], FILTER_VALIDATE_BOOLEAN);
-        }
-        
         $user->fill($data);
         $user->save();
         
-        return $user->fresh();
+        return $user;
     }
 } 

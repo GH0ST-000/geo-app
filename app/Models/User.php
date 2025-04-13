@@ -31,8 +31,6 @@ class User extends Authenticatable implements JWTSubject, HasMedia
         'phone',
         'user_type',
         'profile_picture',
-        'is_verified',
-        'description',
     ];
 
     /**
@@ -59,7 +57,6 @@ class User extends Authenticatable implements JWTSubject, HasMedia
         return [
             'email_verified_at' => 'datetime',
             'password' => 'hashed',
-            'is_verified' => 'boolean',
         ];
     }
 
@@ -90,23 +87,21 @@ class User extends Authenticatable implements JWTSubject, HasMedia
     {
         $this->addMediaCollection('profile_picture')
             ->singleFile()
+            ->acceptsMimeTypes(['image/jpeg', 'image/png', 'image/jpg', 'image/gif'])
             ->registerMediaConversions(function (Media $media) {
                 $this->addMediaConversion('thumb')
                     ->width(150)
                     ->height(150)
-                    ->keepOriginalImageFormat()
                     ->nonQueued();
-
+                
                 $this->addMediaConversion('medium')
                     ->width(400)
                     ->height(400)
-                    ->keepOriginalImageFormat()
                     ->nonQueued();
-
+                
                 $this->addMediaConversion('large')
                     ->width(1200)
                     ->height(1200)
-                    ->keepOriginalImageFormat()
                     ->nonQueued();
             });
     }
@@ -123,12 +118,12 @@ class User extends Authenticatable implements JWTSubject, HasMedia
         if ($media) {
             return $media->getUrl();
         }
-
+        
         // Fall back to old profile_picture field if it exists
         if ($this->profile_picture) {
             return $this->profile_picture;
         }
-
+        
         return null;
     }
 
@@ -143,7 +138,7 @@ class User extends Authenticatable implements JWTSubject, HasMedia
         if ($media) {
             return $media->getUrl('thumb');
         }
-
+        
         return null;
     }
 
