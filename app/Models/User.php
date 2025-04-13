@@ -31,6 +31,8 @@ class User extends Authenticatable implements JWTSubject, HasMedia
         'phone',
         'user_type',
         'profile_picture',
+        'is_verified',
+        'description',
     ];
 
     /**
@@ -57,6 +59,7 @@ class User extends Authenticatable implements JWTSubject, HasMedia
         return [
             'email_verified_at' => 'datetime',
             'password' => 'hashed',
+            'is_verified' => 'boolean',
         ];
     }
 

@@ -27,14 +27,23 @@ class ProfileController extends Controller
     public function update(Request $request): \Illuminate\Http\JsonResponse
     {
         $user = Auth::user();
+        $isAdmin = $user->user_type === 'admin'; // Check if user is admin
 
-        $validator = Validator::make($request->all(), [
+        $validationRules = [
             'first_name' => 'sometimes|string|max:255',
             'last_name' => 'sometimes|string|max:255',
             'city' => 'sometimes|string|max:255',
             'phone' => 'sometimes|string|max:255',
+            'description' => 'sometimes|nullable|string',
             'profile_picture' => 'sometimes|file|mimes:jpeg,png,jpg,gif,webp,bmp,svg|max:30000', // 30MB max size
-        ], [
+        ];
+        
+        // Only allow admin to update verification status
+        if ($isAdmin) {
+            $validationRules['is_verified'] = 'sometimes|boolean';
+        }
+
+        $validator = Validator::make($request->all(), $validationRules, [
             'profile_picture.mimes' => 'The profile picture must be a file of type: jpeg, png, jpg, gif, webp, bmp, or svg.',
             'profile_picture.max' => 'The profile picture must not be larger than 30MB.',
         ]);
@@ -109,6 +118,26 @@ class ProfileController extends Controller
                     }
                 }
                 
+                // Run storage:copy command to ensure files are copied to public directory with correct permissions
+                try {
+                    \Artisan::call('storage:copy', ['--force' => true]);
+                    \Log::info('storage:copy command ran successfully after upload');
+                    
+                    // Also set permissions directly on the files
+                    $storagePath = public_path('storage');
+                    if (is_dir($storagePath)) {
+                        // Fix permissions on directories
+                        exec('find ' . escapeshellarg($storagePath) . ' -type d -exec chmod 755 {} \;');
+                        // Fix permissions on files
+                        exec('find ' . escapeshellarg($storagePath) . ' -type f -exec chmod 644 {} \;');
+                        \Log::info('Set permissions on storage directory files');
+                    }
+                } catch (\Exception $e) {
+                    \Log::error('Failed to run storage:copy after upload', [
+                        'error' => $e->getMessage()
+                    ]);
+                }
+                
                 \Log::info('Profile picture uploaded successfully', [
                     'media_id' => $media->id,
                     'url' => $media->getUrl()
@@ -127,10 +156,18 @@ class ProfileController extends Controller
             }
         }
 
+        // Prepare the fields to update
+        $fieldsToUpdate = [
+            'first_name', 'last_name', 'city', 'phone', 'profile_picture', 'description'
+        ];
+        
+        // Add is_verified to fields if user is admin
+        if ($isAdmin && $request->has('is_verified')) {
+            $fieldsToUpdate[] = 'is_verified';
+        }
+
         // Update user profile
-        $updatedUser = $this->userService->updateProfile($user, $request->only([
-            'first_name', 'last_name', 'city', 'phone', 'profile_picture'
-        ]));
+        $updatedUser = $this->userService->updateProfile($user, $request->only($fieldsToUpdate));
 
         // Add media URLs to the response
         $responseUser = $updatedUser->toArray();
