@@ -25,25 +25,10 @@ class UserService implements UserServiceInterface
      */
     public function register(array $data): array
     {
-        $userData = $data;
-        $userData['user_type'] = 'farmer';
-        
-        $user = $this->userRepository->create($userData);
+        $user = $this->userRepository->create($data);
         $token = Auth::login($user);
-
         $userResponse = $user->toArray();
         
-        // Add profile image URLs
-        $userResponse['profile_picture_url'] = $user->profile_thumbnail_url ?? $user->profile_picture_url;
-        
-        // Include all available image sizes
-        $userResponse['profile_images'] = [
-            'thumbnail' => $user->profile_thumbnail_url,
-            'medium' => $user->profile_medium_url,
-            'large' => $user->profile_large_url,
-            'original' => $user->profile_picture_url
-        ];
-
         return [
             'user' => $userResponse,
             'authorization' => [
@@ -68,17 +53,6 @@ class UserService implements UserServiceInterface
         $user = Auth::user();
         $userData = $user->toArray();
         
-        // Add profile image URLs
-        $userData['profile_picture_url'] = $user->profile_thumbnail_url ?? $user->profile_picture_url;
-        
-        // Include all available image sizes
-        $userData['profile_images'] = [
-            'thumbnail' => $user->profile_thumbnail_url,
-            'medium' => $user->profile_medium_url,
-            'large' => $user->profile_large_url,
-            'original' => $user->profile_picture_url
-        ];
-
         return [
             'user' => $userData,
             'authorization' => [
