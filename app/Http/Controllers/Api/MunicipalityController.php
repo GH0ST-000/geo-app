@@ -29,18 +29,18 @@ class MunicipalityController extends Controller
         // If search query is provided, search municipalities
         if ($request->has('search')) {
             $municipalities = $this->municipalityRepository->search($request->search, $locale);
-            return response()->json($municipalities);
+            return response()->json($municipalities, 200, [], JSON_UNESCAPED_UNICODE);
         }
 
         // If region is provided, filter by region
         if ($request->has('region')) {
             $municipalities = $this->municipalityRepository->getByRegion($request->region, $locale);
-            return response()->json($municipalities);
+            return response()->json($municipalities, 200, [], JSON_UNESCAPED_UNICODE);
         }
 
         // Otherwise, return all municipalities
         $municipalities = $this->municipalityRepository->getAll($locale);
-        return response()->json($municipalities);
+        return response()->json($municipalities, 200, [], JSON_UNESCAPED_UNICODE);
     }
 
     /**
@@ -63,7 +63,7 @@ class MunicipalityController extends Controller
             ], 404);
         }
         
-        return response()->json($municipality);
+        return response()->json($municipality, 200, [], JSON_UNESCAPED_UNICODE);
     }
     
     /**
