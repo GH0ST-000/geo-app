@@ -37,7 +37,7 @@ class ProfileController extends Controller
             'age' => 'sometimes|integer|min:1|max:120',
             'personal_number' => 'sometimes|string|max:20',
             'gender' => 'sometimes|string|in:male,female,other',
-            'profile_picture' => 'sometimes|nullable|file|mimes:jpeg,png,jpg,gif|max:30000', // 30MB max size
+            'profile_picture' => 'sometimes|nullable|file|mimes:jpeg,png,jpg,gif|max:30000',
         ], [
             'profile_picture.file' => 'The profile picture must be a file.',
             'profile_picture.mimes' => 'The profile picture must be a jpeg, png, jpg, or gif file.',
@@ -76,24 +76,24 @@ class ProfileController extends Controller
                         'max_execution_time' => ini_get('max_execution_time'),
                     ]
                 ]);
-                
+
                 // Check if file is valid
                 if (!$request->file('profile_picture')->isValid()) {
                     return response()->json([
                         'errors' => [
                             'profile_picture' => [
-                                'The profile picture upload failed: ' . 
+                                'The profile picture upload failed: ' .
                                 $request->file('profile_picture')->getErrorMessage()
                             ]
                         ]
                     ], 422);
                 }
-                
+
                 // Add the file to the media collection
                 try {
                     $media = $user->addMediaFromRequest('profile_picture')
                         ->toMediaCollection('profile_picture');
-                        
+
                     // Log success
                     \Log::info('Profile picture uploaded successfully', [
                         'media_id' => $media->id,
@@ -104,7 +104,7 @@ class ProfileController extends Controller
                         'message' => $innerException->getMessage(),
                         'trace' => $innerException->getTraceAsString()
                     ]);
-                    
+
                     return response()->json([
                         'errors' => [
                             'profile_picture' => [
@@ -122,7 +122,7 @@ class ProfileController extends Controller
                     \Log::error('Failed to get media URL', [
                         'message' => $mediaException->getMessage()
                     ]);
-                    
+
                     return response()->json([
                         'errors' => [
                             'profile_picture' => [
@@ -136,7 +136,7 @@ class ProfileController extends Controller
                     'message' => $e->getMessage(),
                     'trace' => $e->getTraceAsString()
                 ]);
-                
+
                 return response()->json([
                     'errors' => [
                         'profile_picture' => [
@@ -154,16 +154,16 @@ class ProfileController extends Controller
 
         // Add media URLs to the response
         $responseUser = $updatedUser->toArray();
-        
+
         // Always use the original image URL to avoid 404 errors when conversions are still processing
         $mediaUrl = null;
         $media = $updatedUser->getFirstMedia('profile_picture');
-        
+
         if ($media) {
             // Always use the original image URL initially
             // Conversions will be processed in the background and will be available later
             $mediaUrl = $media->getUrl();
-            
+
             // Log the URL being returned
             \Log::info('Profile picture URL being returned', [
                 'media_id' => $media->id,
@@ -171,9 +171,9 @@ class ProfileController extends Controller
                 'has_medium_conversion' => $media->hasGeneratedConversion('medium')
             ]);
         }
-        
+
         $responseUser['profile_picture_url'] = $mediaUrl;
-        
+
         // Remove the media collection from the response to keep it clean
         unset($responseUser['media']);
 
