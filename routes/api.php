@@ -4,6 +4,7 @@ use App\Http\Controllers\Api\AuthController;
 use App\Http\Controllers\Api\MunicipalityController;
 use App\Http\Controllers\Api\ProfileController;
 use App\Http\Controllers\Api\UserController;
+use App\Http\Controllers\Api\ProductController;
 use Illuminate\Support\Facades\Route;
 
 // Auth routes
@@ -19,6 +20,9 @@ Route::group(['middleware' => 'auth:api'], function() {
 
     // Profile routes
     Route::post('/profile/update', [ProfileController::class, 'update']);
+    
+    // Product routes (protected)
+    Route::apiResource('products', ProductController::class);
 });
 
 // Public Municipality routes
@@ -27,3 +31,7 @@ Route::get('/municipalities/{id}', [MunicipalityController::class, 'show']);
 
 // Public User routes
 Route::get('/users/verified', [UserController::class, 'getVerifiedUsers']);
+
+// Public Product routes
+Route::get('/public/products', [ProductController::class, 'getAllProducts']);
+Route::get('/public/products/{id}', [ProductController::class, 'getProduct']);
