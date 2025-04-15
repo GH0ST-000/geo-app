@@ -31,6 +31,10 @@ class User extends Authenticatable implements JWTSubject, HasMedia
         'phone',
         'user_type',
         'profile_picture',
+        'name',
+        'age',
+        'personal_number',
+        'gender',
     ];
 
     /**
@@ -92,17 +96,17 @@ class User extends Authenticatable implements JWTSubject, HasMedia
                 $this->addMediaConversion('thumb')
                     ->width(150)
                     ->height(150)
-                    ->nonQueued();
+                    ->queued();
                 
                 $this->addMediaConversion('medium')
                     ->width(400)
                     ->height(400)
-                    ->nonQueued();
+                    ->queued();
                 
                 $this->addMediaConversion('large')
                     ->width(1200)
                     ->height(1200)
-                    ->nonQueued();
+                    ->queued();
             });
     }
 
