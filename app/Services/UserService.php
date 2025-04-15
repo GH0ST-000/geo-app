@@ -54,6 +54,11 @@ class UserService implements UserServiceInterface
         $user = Auth::user();
         $userData = $user->toArray();
         
+        // Add profile picture URLs
+        $userData['profile_picture_url'] = $user->profile_picture_url;
+        $userData['profile_thumbnail_url'] = $user->profile_thumbnail_url;
+        $userData['profile_medium_url'] = $user->profile_medium_url;
+        
         return [
             'user' => $userData,
             'authorization' => [
