@@ -42,9 +42,9 @@ interface UserRepositoryInterface
     /**
      * Update user profile
      *
-     * @param User $user
+     * @param int $userId
      * @param array $data
      * @return User
      */
-    public function updateProfile(User $user, array $data);
+    public function updateProfile(int $userId, array $data): User;
 } 

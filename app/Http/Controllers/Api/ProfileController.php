@@ -33,7 +33,7 @@ class ProfileController extends Controller
             'last_name' => 'sometimes|string|max:255',
             'city' => 'sometimes|string|max:255',
             'phone' => 'sometimes|string|max:255',
-            'profile_picture' => 'sometimes|file|mimes:jpeg,png,jpg,gif|max:30000', // 30MB max size
+            'profile_picture' => 'nullable|file|mimes:jpeg,png,jpg,gif|max:30000', // 30MB max size
         ], [
             'profile_picture.file' => 'The profile picture must be a file.',
             'profile_picture.mimes' => 'The profile picture must be a jpeg, png, jpg, or gif file.',
@@ -151,19 +151,21 @@ class ProfileController extends Controller
         // Add media URLs to the response
         $responseUser = $updatedUser->toArray();
         
-        // Get profile picture URL with fallbacks
+        // Always use the original image URL to avoid 404 errors when conversions are still processing
         $mediaUrl = null;
         $media = $updatedUser->getFirstMedia('profile_picture');
         
         if ($media) {
-            // Try medium size first
-            if ($media->hasGeneratedConversion('medium')) {
-                $mediaUrl = $media->getUrl('medium');
-            } 
-            // Fall back to original if medium doesn't exist
-            else {
-                $mediaUrl = $media->getUrl();
-            }
+            // Always use the original image URL initially
+            // Conversions will be processed in the background and will be available later
+            $mediaUrl = $media->getUrl();
+            
+            // Log the URL being returned
+            \Log::info('Profile picture URL being returned', [
+                'media_id' => $media->id,
+                'url' => $mediaUrl,
+                'has_medium_conversion' => $media->hasGeneratedConversion('medium')
+            ]);
         }
         
         $responseUser['profile_picture_url'] = $mediaUrl;
@@ -174,6 +176,25 @@ class ProfileController extends Controller
         return response()->json([
             'message' => 'Profile updated successfully',
             'user' => $responseUser
+        ]);
+    }
+
+    public function updateProfile(Request $request)
+    {
+        $validated = $request->validate([
+            'name' => 'required|string|max:255',
+            'email' => 'required|string|email|max:255|unique:users,email,' . auth()->id(),
+            'profile_picture' => 'nullable|image|mimes:jpeg,png,jpg,gif|max:2048',
+            'age' => 'nullable|integer|min:1|max:120',
+            'personal_number' => 'nullable|string|max:20',
+            'gender' => 'nullable|string|in:male,female,other',
+        ]);
+
+        $user = $this->userService->updateProfile(auth()->id(), $validated);
+
+        return response()->json([
+            'message' => 'Profile updated successfully',
+            'user' => $user
         ]);
     }
 }

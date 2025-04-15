@@ -78,23 +78,14 @@ class UserRepository implements UserRepositoryInterface
     /**
      * Update user profile
      *
-     * @param User $user
+     * @param int $userId
      * @param array $data
      * @return User
      */
-    public function updateProfile(User $user, array $data)
+    public function updateProfile(int $userId, array $data): User
     {
-        // Remove profile_picture if it's a temporary path
-        if (isset($data['profile_picture']) && 
-            (strpos($data['profile_picture'], '/tmp/') !== false || 
-             strpos($data['profile_picture'], '/var/folders/') !== false ||
-             strpos($data['profile_picture'], 'php') !== false)) {
-            unset($data['profile_picture']);
-        }
-        
-        $user->fill($data);
-        $user->save();
-        
+        $user = User::findOrFail($userId);
+        $user->update($data);
         return $user;
     }
 } 

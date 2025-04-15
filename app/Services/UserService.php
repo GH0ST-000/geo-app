@@ -7,6 +7,7 @@ use App\Repositories\Interfaces\UserRepositoryInterface;
 use App\Services\Interfaces\UserServiceInterface;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Hash;
+use Illuminate\Support\Facades\Storage;
 
 class UserService implements UserServiceInterface
 {
@@ -100,12 +101,18 @@ class UserService implements UserServiceInterface
     /**
      * Update user profile
      *
-     * @param User $user
+     * @param int $userId
      * @param array $data
      * @return User
      */
-    public function updateProfile(User $user, array $data): User
+    public function updateProfile(int $userId, array $data): User
     {
-        return $this->userRepository->updateProfile($user, $data);
+        return $this->userRepository->updateProfile($userId, $data);
+    }
+
+    private function handleProfilePictureUpload($file): string
+    {
+        $path = $file->store('profile-pictures', 'public');
+        return Storage::url($path);
     }
 } 
