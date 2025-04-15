@@ -180,7 +180,7 @@ class ProfileController extends Controller
         return response()->json([
             'message' => 'Profile updated successfully',
             'user' => $responseUser
-        ]);
+        ], 200, [], JSON_UNESCAPED_UNICODE);
     }
 
     public function updateProfile(Request $request)
@@ -199,6 +199,6 @@ class ProfileController extends Controller
         return response()->json([
             'message' => 'Profile updated successfully',
             'user' => $user
-        ]);
+        ], 200, [], JSON_UNESCAPED_UNICODE);
     }
 }
