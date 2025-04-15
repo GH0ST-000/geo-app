@@ -33,7 +33,11 @@ class ProfileController extends Controller
             'last_name' => 'sometimes|string|max:255',
             'city' => 'sometimes|string|max:255',
             'phone' => 'sometimes|string|max:255',
-            'profile_picture' => 'nullable|file|mimes:jpeg,png,jpg,gif|max:30000', // 30MB max size
+            'email' => 'sometimes|string|email|max:255|unique:users,email,' . $user->id,
+            'age' => 'sometimes|integer|min:1|max:120',
+            'personal_number' => 'sometimes|string|max:20',
+            'gender' => 'sometimes|string|in:male,female,other',
+            'profile_picture' => 'sometimes|nullable|file|mimes:jpeg,png,jpg,gif|max:30000', // 30MB max size
         ], [
             'profile_picture.file' => 'The profile picture must be a file.',
             'profile_picture.mimes' => 'The profile picture must be a jpeg, png, jpg, or gif file.',
@@ -55,7 +59,7 @@ class ProfileController extends Controller
         }
 
         // Handle profile picture upload with Media Library
-        if ($request->hasFile('profile_picture')) {
+        if ($request->hasFile('profile_picture') && $request->file('profile_picture')->isValid()) {
             try {
                 // Log upload attempt
                 \Log::info('Attempting to upload profile picture', [
@@ -145,7 +149,7 @@ class ProfileController extends Controller
 
         // Update user profile
         $updatedUser = $this->userService->updateProfile($user->id, $request->only([
-            'first_name', 'last_name', 'city', 'phone', 'profile_picture'
+            'first_name', 'last_name', 'city', 'phone', 'email', 'age', 'personal_number', 'gender', 'profile_picture'
         ]));
 
         // Add media URLs to the response
@@ -184,7 +188,7 @@ class ProfileController extends Controller
         $validated = $request->validate([
             'name' => 'required|string|max:255',
             'email' => 'required|string|email|max:255|unique:users,email,' . auth()->id(),
-            'profile_picture' => 'nullable|image|mimes:jpeg,png,jpg,gif|max:2048',
+            'profile_picture' => 'sometimes|nullable|image|mimes:jpeg,png,jpg,gif|max:2048',
             'age' => 'nullable|integer|min:1|max:120',
             'personal_number' => 'nullable|string|max:20',
             'gender' => 'nullable|string|in:male,female,other',
