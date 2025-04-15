@@ -144,7 +144,7 @@ class ProfileController extends Controller
         }
 
         // Update user profile
-        $updatedUser = $this->userService->updateProfile($user, $request->only([
+        $updatedUser = $this->userService->updateProfile($user->id, $request->only([
             'first_name', 'last_name', 'city', 'phone', 'profile_picture'
         ]));
 
