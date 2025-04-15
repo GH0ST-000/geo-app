@@ -192,4 +192,12 @@ class User extends Authenticatable implements JWTSubject, HasMedia
 
         return null;
     }
+
+    /**
+     * Get the products owned by the user.
+     */
+    public function products()
+    {
+        return $this->hasMany(Product::class);
+    }
 }
