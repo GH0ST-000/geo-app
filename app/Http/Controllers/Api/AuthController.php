@@ -34,7 +34,7 @@ class AuthController extends Controller
 
         $result = $this->userService->register($request->all());
 
-        return response()->json($result, 201);
+        return response()->json($result, 201, [], JSON_UNESCAPED_UNICODE);
     }
 
     public function login(Request $request): \Illuminate\Http\JsonResponse
@@ -57,7 +57,7 @@ class AuthController extends Controller
             ], 401);
         }
 
-        return response()->json($result);
+        return response()->json($result, 200, [], JSON_UNESCAPED_UNICODE);
     }
 
     public function logout(): \Illuminate\Http\JsonResponse
@@ -65,7 +65,7 @@ class AuthController extends Controller
         Auth::logout();
         return response()->json([
             'message' => 'Successfully logged out'
-        ]);
+        ], 200, [], JSON_UNESCAPED_UNICODE);
     }
 
     public function refresh(): \Illuminate\Http\JsonResponse
@@ -76,12 +76,12 @@ class AuthController extends Controller
                 'token' => Auth::refresh(),
                 'type' => 'bearer',
             ]
-        ]);
+        ], 200, [], JSON_UNESCAPED_UNICODE);
     }
 
     public function user(): \Illuminate\Http\JsonResponse
     {
-        return response()->json(Auth::user());
+        return response()->json(Auth::user(), 200, [], JSON_UNESCAPED_UNICODE);
     }
 
     public function updatePassword(Request $request): \Illuminate\Http\JsonResponse
@@ -111,6 +111,6 @@ class AuthController extends Controller
 
         return response()->json([
             'message' => $result['message']
-        ]);
+        ], 200, [], JSON_UNESCAPED_UNICODE);
     }
 }
