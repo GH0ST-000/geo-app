@@ -49,8 +49,6 @@ class User extends Authenticatable implements JWTSubject, HasMedia
         'remember_token',
         'created_at',
         'updated_at',
-        'profile_picture',
-        'profile_picture_url'
     ];
 
     /**
@@ -99,12 +97,12 @@ class User extends Authenticatable implements JWTSubject, HasMedia
                     ->width(150)
                     ->height(150)
                     ->queued();
-                
+
                 $this->addMediaConversion('medium')
                     ->width(400)
                     ->height(400)
                     ->queued();
-                
+
                 $this->addMediaConversion('large')
                     ->width(1200)
                     ->height(1200)
@@ -124,12 +122,12 @@ class User extends Authenticatable implements JWTSubject, HasMedia
         if ($media) {
             return $media->getUrl();
         }
-        
+
         // Fall back to old profile_picture field if it exists
         if ($this->profile_picture) {
             return $this->profile_picture;
         }
-        
+
         return null;
     }
 
@@ -144,12 +142,12 @@ class User extends Authenticatable implements JWTSubject, HasMedia
         if ($media && $media->hasGeneratedConversion('thumb')) {
             return $media->getUrl('thumb');
         }
-        
+
         // Fall back to original
         if ($media) {
             return $media->getUrl();
         }
-        
+
         return null;
     }
 
@@ -164,7 +162,7 @@ class User extends Authenticatable implements JWTSubject, HasMedia
         if ($media && $media->hasGeneratedConversion('medium')) {
             return $media->getUrl('medium');
         }
-        
+
         // Fall back to original
         if ($media) {
             return $media->getUrl();
@@ -184,7 +182,7 @@ class User extends Authenticatable implements JWTSubject, HasMedia
         if ($media && $media->hasGeneratedConversion('large')) {
             return $media->getUrl('large');
         }
-        
+
         // Fall back to original
         if ($media) {
             return $media->getUrl();
