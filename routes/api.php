@@ -3,6 +3,7 @@
 use App\Http\Controllers\Api\AuthController;
 use App\Http\Controllers\Api\MunicipalityController;
 use App\Http\Controllers\Api\ProfileController;
+use App\Http\Controllers\Api\UserController;
 use Illuminate\Support\Facades\Route;
 
 // Auth routes
@@ -23,3 +24,6 @@ Route::group(['middleware' => 'auth:api'], function() {
 // Public Municipality routes
 Route::get('/municipalities', [MunicipalityController::class, 'index']);
 Route::get('/municipalities/{id}', [MunicipalityController::class, 'show']);
+
+// Public User routes
+Route::get('/users/verified', [UserController::class, 'getVerifiedUsers']);
