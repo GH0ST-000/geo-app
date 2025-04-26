@@ -23,6 +23,7 @@ Route::group(['middleware' => 'auth:api'], function() {
     
     // Product routes (protected)
     Route::apiResource('products', ProductController::class);
+    Route::delete('products/{productId}/images/{imageId}', [ProductController::class, 'deleteImage']);
 });
 
 // Public Municipality routes

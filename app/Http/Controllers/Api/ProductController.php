@@ -104,6 +104,14 @@ class ProductController extends Controller
 
     /**
      * Update the specified resource in storage.
+     * 
+     * @param Request $request Request data
+     * @param string $id Product ID
+     * @return \Illuminate\Http\JsonResponse
+     * 
+     * To add images: Send files as an array in 'product_file[]' or 'product_images[]'
+     * To delete multiple images: Send an array of media IDs in 'delete_images[]'
+     * To delete a single image: Use the dedicated endpoint DELETE /products/{productId}/images/{imageId}
      */
     public function update(Request $request, string $id)
     {
@@ -279,5 +287,40 @@ class ProductController extends Controller
         ];
         
         return response()->json($product, 200, [], JSON_UNESCAPED_UNICODE);
+    }
+
+    /**
+     * Delete a single product image
+     */
+    public function deleteImage(Request $request, string $productId, string $imageId)
+    {
+        $product = Product::findOrFail($productId);
+        
+        // Check if the current user owns this product
+        if ($product->user_id != Auth::id()) {
+            return response()->json([
+                'message' => 'You are not authorized to modify this product'
+            ], 403);
+        }
+        
+        // Find and delete the image
+        $media = $product->media()->find($imageId);
+        
+        if (!$media) {
+            return response()->json([
+                'message' => 'Image not found'
+            ], 404);
+        }
+        
+        $media->delete();
+        
+        // Reload the product with fresh images
+        $product->load('media');
+        $product->product_images = $product->getProductImagesAttribute();
+        
+        return response()->json([
+            'message' => 'Image deleted successfully',
+            'product' => $product
+        ], 200, [], JSON_UNESCAPED_UNICODE);
     }
 }
