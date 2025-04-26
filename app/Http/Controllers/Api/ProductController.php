@@ -38,6 +38,7 @@ class ProductController extends Controller
             'packing_capacity' => 'required|string|max:255',
             'address' => 'required|string|max:255',
             'product_images.*' => 'sometimes|image|mimes:jpeg,png,jpg,gif|max:10240',
+            'product_file.*' => 'sometimes|image|mimes:jpeg,png,jpg,gif|max:10240',
         ]);
 
         if ($validator->fails()) {
@@ -52,9 +53,19 @@ class ProductController extends Controller
         $product->address = $request->address;
         $product->save();
 
-        // Handle product images if any
+        // Handle product images from product_images field if any
         if ($request->hasFile('product_images')) {
             foreach ($request->file('product_images') as $image) {
+                if ($image->isValid()) {
+                    $product->addMedia($image)
+                        ->toMediaCollection('product_images');
+                }
+            }
+        }
+        
+        // Handle product images from product_file field if any
+        if ($request->hasFile('product_file')) {
+            foreach ($request->file('product_file') as $image) {
                 if ($image->isValid()) {
                     $product->addMedia($image)
                         ->toMediaCollection('product_images');
@@ -111,6 +122,7 @@ class ProductController extends Controller
             'packing_capacity' => 'sometimes|required|string|max:255',
             'address' => 'sometimes|required|string|max:255',
             'product_images.*' => 'sometimes|image|mimes:jpeg,png,jpg,gif|max:10240',
+            'product_file.*' => 'sometimes|image|mimes:jpeg,png,jpg,gif|max:10240',
             'is_active' => 'sometimes|boolean'
         ]);
 
@@ -144,6 +156,16 @@ class ProductController extends Controller
         // Handle product images if any
         if ($request->hasFile('product_images')) {
             foreach ($request->file('product_images') as $image) {
+                if ($image->isValid()) {
+                    $product->addMedia($image)
+                        ->toMediaCollection('product_images');
+                }
+            }
+        }
+        
+        // Handle product images from product_file field if any
+        if ($request->hasFile('product_file')) {
+            foreach ($request->file('product_file') as $image) {
                 if ($image->isValid()) {
                     $product->addMedia($image)
                         ->toMediaCollection('product_images');
