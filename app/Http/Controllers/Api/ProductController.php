@@ -109,6 +109,7 @@ class ProductController extends Controller
      * @param string $id Product ID
      * @return \Illuminate\Http\JsonResponse
      * 
+     * Using POST method to support form data with file uploads
      * To add images: Send files as an array in 'product_file[]' or 'product_images[]'
      * To delete multiple images: Send an array of media IDs in 'delete_images[]'
      * To delete a single image: Use the dedicated endpoint DELETE /products/{productId}/images/{imageId}
