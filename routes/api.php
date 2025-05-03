@@ -49,6 +49,7 @@ Route::get('/users/verified', [UserController::class, 'getVerifiedUsers']);
 // Public Product routes
 Route::get('/public/products', [ProductController::class, 'getAllProducts']);
 Route::get('/public/products/{id}', [ProductController::class, 'getProduct']);
+Route::get('/public/users/{userId}/products', [ProductController::class, 'getUserProducts']);
 
 // Password generation route
 Route::post('/generate-password', [PasswordController::class, 'generateAndSendPassword']);
