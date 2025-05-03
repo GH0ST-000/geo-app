@@ -13,7 +13,7 @@ use Illuminate\Support\Facades\Storage;
 class UserController extends Controller
 {
     /**
-     * Get all verified users with pagination
+     * Get all users with pagination (both verified and unverified)
      *
      * @param Request $request
      * @return \Illuminate\Http\JsonResponse
@@ -22,7 +22,7 @@ class UserController extends Controller
     {
         $perPage = $request->get('per_page', 9); // Default is 9 per page as requested
         
-        $query = User::where('is_verified', true);
+        $query = User::query(); // Get all users without filtering by is_verified
         
         // Filter by gender if provided
         if ($request->has('gender') && in_array($request->gender, ['male', 'female', 'other'])) {
@@ -68,6 +68,7 @@ class UserController extends Controller
                 'gender' => $user->gender,
                 'age' => $user->age,
                 'description' => $user->description,
+                'is_verified' => $user->is_verified,
                 'user_type' => $user->user_type,
             ];
         });
