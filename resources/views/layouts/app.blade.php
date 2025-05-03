@@ -27,11 +27,7 @@
     <link href="https://cdn.jsdelivr.net/npm/select2@4.1.0-rc.0/dist/css/select2.min.css" rel="stylesheet" />
     <script src="https://cdn.jsdelivr.net/npm/select2@4.1.0-rc.0/dist/js/select2.min.js"></script>
     <script src="https://ajax.googleapis.com/ajax/libs/jqueryui/1.10.3/jquery-ui.min.js"></script>
-
-
-@if(isset($param->logo))
-        <link rel="shortcut icon" href="{{asset('Images'.'/'.$param->logo)}}" />
-    @endif
+    <link rel="shortcut icon" href="https://geogapp.site/assets/Logo-DSp0wGmi.svg" />
     <link rel="stylesheet" href="{{asset('assets/vendors/mdi/css/materialdesignicons.min.css')}}">
 </head>
 <body>
