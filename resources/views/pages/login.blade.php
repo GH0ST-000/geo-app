@@ -1,4 +1,3 @@
-
 <!DOCTYPE html>
 <!--
 Template Name: NobleUI - Laravel Admin Dashboard Template
@@ -61,18 +60,34 @@ License: You must have a valid license to legally use the template for your proj
                                 <div class="auth-form-wrapper px-4 py-5" style="background: #E7F5E9 !important;">
                                     <a href="#" class="noble-ui-logo d-block mb-2">GeoGap<span class="ms-2">სამართავი პანელი</span></a>
                                     <h5 class="text-muted fw-normal mb-4">სამართავ პანელში შესვლა</h5>
-                                    <form class="forms-sample" >
+                                    <form class="forms-sample" action="{{ route('login') }}" method="POST">
+                                        @csrf
                                         <div class="mb-3">
                                             <label for="userEmail" class="form-label">ელ.ფოსტა</label>
-                                            <input  type="email" class="form-control" id="userEmail" placeholder="ელ.ფოსტ">
+                                            <input name="email" type="email" class="form-control @error('email') is-invalid @enderror" id="userEmail" placeholder="ელ.ფოსტ" value="{{ old('email') }}">
+                                            @error('email')
+                                                <div class="invalid-feedback">
+                                                    {{ $message }}
+                                                </div>
+                                            @enderror
                                         </div>
                                         <div class="mb-3">
                                             <label for="userPassword" class="form-label">პაროლი</label>
-                                            <input type="password" class="form-control" id="userPassword" autocomplete="current-password" placeholder="პაროლი">
+                                            <input name="password" type="password" class="form-control @error('password') is-invalid @enderror" id="userPassword" autocomplete="current-password" placeholder="პაროლი">
+                                            @error('password')
+                                                <div class="invalid-feedback">
+                                                    {{ $message }}
+                                                </div>
+                                            @enderror
+                                        </div>
+
+                                        <div class="form-check mb-3">
+                                            <input type="checkbox" class="form-check-input" id="remember" name="remember">
+                                            <label class="form-check-label" for="remember">დამიმახსოვრე</label>
                                         </div>
 
                                         <div  class="mt-2">
-                                            <button style="width: 100% !important; background: #348E38 !important;" class="btn text-white me-2 mb-2 mb-md-0">შესვლა</button>
+                                            <button type="submit" style="width: 100% !important; background: #348E38 !important;" class="btn text-white me-2 mb-2 mb-md-0">შესვლა</button>
                                         </div>
                                     </form>
                                 </div>

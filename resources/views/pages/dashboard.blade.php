@@ -27,7 +27,7 @@
                             </div>
                             <div class="row">
                                 <div class="col-6 col-md-12 col-xl-5">
-                                    <h3 class="mb-2">10</h3>
+                                    <h3 class="mb-2">{{$user}}</h3>
                                 </div>
                             </div>
                         </div>
@@ -49,7 +49,7 @@
                             </div>
                             <div class="row">
                                 <div class="col-6 col-md-12 col-xl-5">
-                                    <h3 class="mb-2">10</h3>
+                                    <h3 class="mb-2">{{$product}}</h3>
                                 </div>
                             </div>
                         </div>
@@ -71,7 +71,7 @@
                             </div>
                             <div class="row">
                                 <div class="col-6 col-md-12 col-xl-5">
-                                    <h3 class="mb-2">10</h3>
+                                    <h3 class="mb-2">{{$application}}</h3>
                                 </div>
                             </div>
                         </div>
