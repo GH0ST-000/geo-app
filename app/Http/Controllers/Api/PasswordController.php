@@ -3,7 +3,9 @@
 namespace App\Http\Controllers\Api;
 
 use App\Http\Controllers\Controller;
+use App\Models\User;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Hash;
 use Illuminate\Support\Facades\Mail;
 use Illuminate\Support\Facades\Validator;
 use Illuminate\Support\Str;
@@ -12,6 +14,7 @@ class PasswordController extends Controller
 {
     /**
      * Generate a random password and send it to the specified email
+     * Also updates the user's password in the database
      *
      * @param Request $request
      * @return \Illuminate\Http\JsonResponse
@@ -41,8 +44,21 @@ class PasswordController extends Controller
             return response()->json(['errors' => $validator->errors()], 422);
         }
 
+        // Find user by email
+        $user = User::where('email', $request->email)->first();
+        
+        if (!$user) {
+            return response()->json([
+                'message' => 'User not found with the provided email'
+            ], 404);
+        }
+
         // Generate a random 8-character password
         $password = Str::random(8);
+        
+        // Update the user's password in the database
+        $user->password = Hash::make($password);
+        $user->save();
         
         // Determine language preference from header (default to English if not specified)
         $language = $request->header('Accept-Language', 'en');
@@ -67,7 +83,7 @@ class PasswordController extends Controller
             });
             
             return response()->json([
-                'message' => 'Password generated and sent successfully',
+                'message' => 'Password generated, updated, and sent successfully',
                 'email' => $request->email,
                 'language' => $language
             ]);
