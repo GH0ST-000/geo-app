@@ -33,6 +33,7 @@ class User extends Authenticatable implements JWTSubject, HasMedia
         'profile_picture',
         'name',
         'age',
+        'is_admin',
         'personal_number',
         'gender',
         'is_verified',
