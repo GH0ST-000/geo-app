@@ -198,4 +198,12 @@ class User extends Authenticatable implements JWTSubject, HasMedia
     {
         return $this->hasMany(Product::class);
     }
+
+    /**
+     * Get the standards belonging to the user.
+     */
+    public function standards()
+    {
+        return $this->hasMany(UserStandard::class);
+    }
 }

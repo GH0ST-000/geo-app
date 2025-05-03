@@ -6,6 +6,7 @@ use App\Http\Controllers\Api\ProfileController;
 use App\Http\Controllers\Api\UserController;
 use App\Http\Controllers\Api\ProductController;
 use App\Http\Controllers\Api\PasswordController;
+use App\Http\Controllers\Api\StandardController;
 use Illuminate\Support\Facades\Route;
 
 // Auth routes
@@ -22,6 +23,12 @@ Route::group(['middleware' => 'auth:api'], function() {
 
     // Profile routes
     Route::post('/profile/update', [ProfileController::class, 'update']);
+    
+    // Standards routes
+    Route::post('/standards', [StandardController::class, 'store']);
+    Route::get('/standards', [StandardController::class, 'index']);
+    Route::get('/standards/{slug}', [StandardController::class, 'index']);
+    Route::delete('/standards/{id}', [StandardController::class, 'destroy']);
     
     // Product routes (protected)
     Route::get('products', [ProductController::class, 'index']);
