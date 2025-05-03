@@ -326,4 +326,57 @@ class ProductController extends Controller
             'product' => $product
         ], 200, [], JSON_UNESCAPED_UNICODE);
     }
+
+    /**
+     * Get products for a specific user (public endpoint)
+     * 
+     * @param string $userId User ID
+     * @return \Illuminate\Http\JsonResponse
+     */
+    public function getUserProducts(string $userId, Request $request)
+    {
+        $perPage = $request->get('per_page', 10);
+        
+        $query = Product::with(['media', 'user'])
+            ->where('user_id', $userId)
+            ->where('is_active', true)
+            ->orderBy('created_at', 'desc');
+        
+        $products = $query->paginate($perPage);
+        
+        // Transform products to include image URLs
+        $transformedProducts = $products->getCollection()->map(function ($product) {
+            $productArray = $product->toArray();
+            $productArray['product_images'] = $product->getProductImagesAttribute();
+            
+            // Include basic user info
+            if ($product->user) {
+                $productArray['user'] = [
+                    'id' => $product->user->id,
+                    'first_name' => $product->user->first_name,
+                    'last_name' => $product->user->last_name,
+                    'profile_picture_url' => $product->user->profile_picture_url,
+                ];
+            }
+            
+            // Remove the media collection to keep response clean
+            unset($productArray['media']);
+            
+            return $productArray;
+        });
+        
+        // Create a new paginator with transformed products
+        $paginatedProducts = new \Illuminate\Pagination\LengthAwarePaginator(
+            $transformedProducts,
+            $products->total(),
+            $products->perPage(),
+            $products->currentPage(),
+            [
+                'path' => \Illuminate\Support\Facades\Request::url(),
+                'query' => $request->query(),
+            ]
+        );
+        
+        return response()->json($paginatedProducts, 200, [], JSON_UNESCAPED_UNICODE);
+    }
 }
