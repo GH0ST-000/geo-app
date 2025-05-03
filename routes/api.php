@@ -18,6 +18,7 @@ Route::group(['middleware' => 'auth:api'], function() {
     Route::post('/auth/refresh', [AuthController::class, 'refresh']);
     Route::get('/user', [AuthController::class, 'user']);
     Route::post('/auth/password/update', [AuthController::class, 'updatePassword']);
+    Route::post('/account/deactivate', [UserController::class, 'deactivateAccount']);
 
     // Profile routes
     Route::post('/profile/update', [ProfileController::class, 'update']);

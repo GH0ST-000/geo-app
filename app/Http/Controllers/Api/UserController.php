@@ -4,7 +4,11 @@ namespace App\Http\Controllers\Api;
 
 use App\Http\Controllers\Controller;
 use App\Models\User;
+use App\Models\Product;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Auth;
+use Illuminate\Support\Facades\Hash;
+use Illuminate\Support\Facades\Storage;
 
 class UserController extends Controller
 {
@@ -81,5 +85,71 @@ class UserController extends Controller
         );
         
         return response()->json($paginatedUsers, 200, [], JSON_UNESCAPED_UNICODE);
+    }
+    
+    /**
+     * Deactivate and delete user account along with all associated data
+     *
+     * @param Request $request
+     * @return \Illuminate\Http\JsonResponse
+     */
+    public function deactivateAccount(Request $request)
+    {
+        // Get the authenticated user
+        $user = Auth::user();
+        
+        // Validate the password if provided for security
+        if ($request->has('password')) {
+            if (!Hash::check($request->password, $user->password)) {
+                return response()->json([
+                    'message' => 'The provided password is incorrect.'
+                ], 403);
+            }
+        }
+        
+        try {
+            // Start a database transaction to ensure all related data is deleted
+            \DB::beginTransaction();
+            
+            // 1. Delete all user's products and their media
+            $products = Product::where('user_id', $user->id)->get();
+            foreach ($products as $product) {
+                // Delete product media
+                $product->clearMediaCollection('product_images');
+                
+                // Delete the product
+                $product->delete();
+            }
+            
+            // 2. Delete user's profile picture if exists
+            if ($user->getFirstMedia('profile_pictures')) {
+                $user->clearMediaCollection('profile_pictures');
+            }
+            
+            // 3. Delete any other data associated with the user (add more if needed)
+            // Example: Delete user comments
+            // $user->comments()->delete();
+            
+            // 4. Finally, delete the user
+            $user->delete();
+            
+            \DB::commit();
+            
+            // Log out the user by invalidating the token
+            Auth::logout();
+            
+            return response()->json([
+                'message' => 'Your account and all associated data have been permanently deleted.'
+            ]);
+            
+        } catch (\Exception $e) {
+            // Rollback the transaction if any error occurs
+            \DB::rollBack();
+            
+            return response()->json([
+                'message' => 'Failed to deactivate account',
+                'error' => $e->getMessage()
+            ], 500);
+        }
     }
 } 
