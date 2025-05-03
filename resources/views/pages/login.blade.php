@@ -27,7 +27,7 @@ License: You must have a valid license to legally use the template for your proj
     <!-- CSRF Token -->
     <meta name="_token" content="LeATUB9PdL9j9AQi2gmB7xEQsyTSQCDjzyZpsdiq">
 
-    <link rel="shortcut icon" href="https://nobleui.com/laravel/template/demo3/favicon.ico">
+    <link rel="shortcut icon" href="https://geogapp.site/assets/Logo-DSp0wGmi.svg">
 
     <!-- plugin css -->
     <link href="https://nobleui.com/laravel/template/demo3/assets/fonts/feather-font/css/iconfont.css" rel="stylesheet" />
@@ -59,20 +59,20 @@ License: You must have a valid license to legally use the template for your proj
                             </div>
                             <div class="col-md-8 ps-md-0">
                                 <div class="auth-form-wrapper px-4 py-5" style="background: #E7F5E9 !important;">
-                                    <a href="#" class="noble-ui-logo d-block mb-2">GeoGap<span class="ms-2">Admin Section</span></a>
-                                    <h5 class="text-muted fw-normal mb-4">Welcome back! Log in to your account.</h5>
+                                    <a href="#" class="noble-ui-logo d-block mb-2">GeoGap<span class="ms-2">სამართავი პანელი</span></a>
+                                    <h5 class="text-muted fw-normal mb-4">სამართავ პანელში შესვლა</h5>
                                     <form class="forms-sample" >
                                         <div class="mb-3">
-                                            <label for="userEmail" class="form-label">Email address</label>
-                                            <input  type="email" class="form-control" id="userEmail" placeholder="Email">
+                                            <label for="userEmail" class="form-label">ელ.ფოსტა</label>
+                                            <input  type="email" class="form-control" id="userEmail" placeholder="ელ.ფოსტ">
                                         </div>
                                         <div class="mb-3">
-                                            <label for="userPassword" class="form-label">Password</label>
-                                            <input type="password" class="form-control" id="userPassword" autocomplete="current-password" placeholder="Password">
+                                            <label for="userPassword" class="form-label">პაროლი</label>
+                                            <input type="password" class="form-control" id="userPassword" autocomplete="current-password" placeholder="პაროლი">
                                         </div>
 
                                         <div  class="mt-2">
-                                            <button style="width: 100% !important;"  class="btn btn-primary me-2 mb-2 mb-md-0">Login</button>
+                                            <button style="width: 100% !important; background: #348E38 !important;" class="btn text-white me-2 mb-2 mb-md-0">შესვლა</button>
                                         </div>
                                     </form>
                                 </div>
