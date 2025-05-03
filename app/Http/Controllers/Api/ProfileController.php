@@ -38,10 +38,12 @@ class ProfileController extends Controller
             'personal_number' => 'sometimes|string|max:20',
             'gender' => 'sometimes|string|in:male,female,other',
             'profile_picture' => 'sometimes|nullable|file|mimes:jpeg,png,jpg,gif|max:30000',
+            'description' => 'sometimes|nullable|string|max:1000',
         ], [
             'profile_picture.file' => 'The profile picture must be a file.',
             'profile_picture.mimes' => 'The profile picture must be a jpeg, png, jpg, or gif file.',
             'profile_picture.max' => 'The profile picture must be less than 30MB.',
+            'description.max' => 'The description cannot be longer than 1000 characters.',
         ]);
 
         if ($validator->fails()) {
@@ -149,7 +151,7 @@ class ProfileController extends Controller
 
         // Update user profile
         $updatedUser = $this->userService->updateProfile($user->id, $request->only([
-            'first_name', 'last_name', 'city', 'phone', 'email', 'age', 'personal_number', 'gender', 'profile_picture'
+            'first_name', 'last_name', 'city', 'phone', 'email', 'age', 'personal_number', 'gender', 'profile_picture', 'description'
         ]));
 
         // Add media URLs to the response
@@ -192,6 +194,7 @@ class ProfileController extends Controller
             'age' => 'nullable|integer|min:1|max:120',
             'personal_number' => 'nullable|string|max:20',
             'gender' => 'nullable|string|in:male,female,other',
+            'description' => 'nullable|string|max:1000',
         ]);
 
         $user = $this->userService->updateProfile(auth()->id(), $validated);
