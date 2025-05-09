@@ -45,6 +45,7 @@ Route::get('/municipalities/{id}', [MunicipalityController::class, 'show']);
 
 // Public User routes
 Route::get('/users/verified', [UserController::class, 'getVerifiedUsers']);
+Route::get('/users/{ulid}', [UserController::class, 'getUserByUlid']);
 
 // Public Product routes
 Route::get('/public/products', [ProductController::class, 'getAllProducts']);
