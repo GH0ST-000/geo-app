@@ -19,7 +19,6 @@ Route::prefix('admin')
     ->middleware(['auth:web', 'admin'])
     ->group(function () {
         Route::get('/dashboard',[DashboardController::class,'index'])->name('admin.dashboard');
-        Route::get('/applications',[ApplicationControler::class,'index'])->name('applications');
         Route::controller(UserController::class)->group(function (){
             Route::get('/users','index')->name('users');
             Route::get('/user/detail/{id}','show')->name('users');
@@ -27,6 +26,9 @@ Route::prefix('admin')
         Route::controller(ProductController::class)->group(function (){
             Route::get('/products','index')->name('products');
             Route::get('/product/detail/{id}','show')->name('products-detail');
+        });
+        Route::controller(ApplicationControler::class)->group(function (){
+            Route::get('/applications','index')->name('applications');
         });
     });
 

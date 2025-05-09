@@ -96,7 +96,7 @@
                                 <tr>
                                     <th class="sorting sorting_asc" tabindex="0" aria-controls="dataTable" rowspan="1" colspan="1" aria-sort="ascending" aria-label="Name: activate to sort column descending" style="width: 145.57px;">#</th>
                                     <th class="sorting" tabindex="0" aria-controls="dataTable" rowspan="1" colspan="1" aria-label="Position: activate to sort column ascending" style="width: 205.57px;">მომხმარებელი</th>
-                                    <th class="sorting" tabindex="0" aria-controls="dataTable" rowspan="1" colspan="1" aria-label="Position: activate to sort column ascending" style="width: 205.57px;">განცხადების ტიპი</th>
+                                    <th class="sorting" tabindex="0" aria-controls="dataTable" rowspan="1" colspan="1" aria-label="Position: activate to sort column ascending" style="width: 205.57px;">სტანდარტის ტიპი</th>
                                     <th class="sorting" tabindex="0" aria-controls="dataTable" rowspan="1" colspan="1" aria-label="Office: activate to sort column ascending" style="width: 175.57px;">შექმნის დრო</th>
                                     <th class="sorting" tabindex="0" aria-controls="dataTable" rowspan="1" colspan="1" aria-label="Office: activate to sort column ascending" style="width: 175.57px;">ქმედება</th>
 
@@ -105,19 +105,20 @@
                                 <tbody>
 
 
+                                @foreach($applications as $application)
+                                    <tr class="odd">
+                                        <td class="sorting_1">{{$application['id']}}</td>
+                                        <td class="sorting_1">{{$application['fullName']}}</td>
+                                        <td class="align-middle">{{$application['standard']}}</td>
 
-                                <tr class="odd">
-                                    <td class="sorting_1">1</td>
-                                    <td class="sorting_1">1</td>
-                                    <td class="align-middle">Lorem ipsum dolor sit.</td>
+                                        <td class="align-middle">{{$application['created_at']}}</td>
 
-                                    <td class="align-middle">Lorem ipsum dolor sit.}</td>
-
-                                    <td class="">
+                                        <td class="">
                                     <span data-bs-toggle="modal" data-bs-target="#editableModal"
                                           class="badge bg-info cursor-pointer" >ნახვა</span>
-                                    </td>
-                                </tr>
+                                        </td>
+                                    </tr>
+                                @endforeach
 
                                 </tbody>
                             </table>
