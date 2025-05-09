@@ -13,7 +13,7 @@ use Illuminate\Support\Facades\Storage;
 class UserController extends Controller
 {
     /**
-     * Get all users with pagination (both verified and unverified)
+     * Get all verified users with pagination
      *
      * @param Request $request
      * @return \Illuminate\Http\JsonResponse
@@ -58,7 +58,7 @@ class UserController extends Controller
         // Transform users to include profile picture URL and hide sensitive data
         $transformedUsers = $users->getCollection()->map(function ($user) {
             return [
-                'id' => $user->id,
+                'ulid' => $user->ulid, // Use ULID instead of ID
                 'first_name' => $user->first_name,
                 'last_name' => $user->last_name,
                 'city' => $user->city,
@@ -86,6 +86,44 @@ class UserController extends Controller
         );
         
         return response()->json($paginatedUsers, 200, [], JSON_UNESCAPED_UNICODE);
+    }
+    
+    /**
+     * Get user by ULID (public route)
+     *
+     * @param string $ulid
+     * @return \Illuminate\Http\JsonResponse
+     */
+    public function getUserByUlid($ulid)
+    {
+        $user = User::where('ulid', $ulid)->first();
+        
+        if (!$user) {
+            return response()->json([
+                'message' => 'User not found'
+            ], 404);
+        }
+        
+        // Return user data without sensitive information
+        $userData = [
+            'ulid' => $user->ulid,
+            'first_name' => $user->first_name,
+            'last_name' => $user->last_name,
+            'city' => $user->city,
+            'email' => $user->email,
+            'phone' => $user->phone,
+            'user_type' => $user->user_type,
+            'age' => $user->age,
+            'gender' => $user->gender,
+            'is_verified' => $user->is_verified,
+            'description' => $user->description,
+            'profile_picture_url' => $user->profile_picture_url,
+            'profile_thumbnail_url' => $user->profile_thumbnail_url,
+            'profile_medium_url' => $user->profile_medium_url,
+            'profile_large_url' => $user->profile_large_url,
+        ];
+        
+        return response()->json($userData, 200, [], JSON_UNESCAPED_UNICODE);
     }
     
     /**

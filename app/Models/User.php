@@ -10,6 +10,7 @@ use Laravel\Sanctum\HasApiTokens;
 use Spatie\MediaLibrary\HasMedia;
 use Spatie\MediaLibrary\InteractsWithMedia;
 use Spatie\MediaLibrary\MediaCollections\Models\Media;
+use Symfony\Component\Uid\Ulid;
 use Tymon\JWTAuth\Contracts\JWTSubject;
 
 class User extends Authenticatable implements JWTSubject, HasMedia
@@ -38,6 +39,7 @@ class User extends Authenticatable implements JWTSubject, HasMedia
         'gender',
         'is_verified',
         'description',
+        'ulid',
     ];
 
     /**
@@ -63,6 +65,30 @@ class User extends Authenticatable implements JWTSubject, HasMedia
             'email_verified_at' => 'datetime',
             'password' => 'hashed',
         ];
+    }
+
+    /**
+     * Boot function from laravel.
+     */
+    protected static function boot()
+    {
+        parent::boot();
+        
+        static::creating(function ($model) {
+            if (empty($model->ulid)) {
+                $model->ulid = (new Ulid())->toBase32();
+            }
+        });
+    }
+
+    /**
+     * Get the route key for the model.
+     *
+     * @return string
+     */
+    public function getRouteKeyName()
+    {
+        return 'ulid';
     }
 
     /**

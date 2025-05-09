@@ -77,6 +77,7 @@ class AuthController extends Controller
         $userData['profile_picture_url'] = $user->profile_picture_url;
         $userData['profile_thumbnail_url'] = $user->profile_thumbnail_url;
         $userData['profile_medium_url'] = $user->profile_medium_url;
+        $userData['ulid'] = $user->ulid;
         
         return response()->json([
             'user' => $userData,
@@ -96,6 +97,7 @@ class AuthController extends Controller
         $userData['profile_picture_url'] = $user->profile_picture_url;
         $userData['profile_thumbnail_url'] = $user->profile_thumbnail_url;
         $userData['profile_medium_url'] = $user->profile_medium_url;
+        $userData['ulid'] = $user->ulid;
         
         return response()->json($userData, 200, [], JSON_UNESCAPED_UNICODE);
     }
