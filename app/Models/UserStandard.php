@@ -21,8 +21,6 @@ class UserStandard extends Model
         'file_name',
         'file_type',
         'file_path',
-        'file_extension',
-        'file_category',
     ];
 
     /**
