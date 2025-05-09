@@ -50,7 +50,7 @@ Route::get('/users/{ulid}', [UserController::class, 'getUserByUlid']);
 // Public Product routes
 Route::get('/public/products', [ProductController::class, 'getAllProducts']);
 Route::get('/public/products/{id}', [ProductController::class, 'getProduct']);
-Route::get('/public/users/{userId}/products', [ProductController::class, 'getUserProducts']);
+Route::get('/public/users/{ulid}/products', [ProductController::class, 'getUserProducts']);
 
 // Password generation route
 Route::post('/generate-password', [PasswordController::class, 'generateAndSendPassword']);
