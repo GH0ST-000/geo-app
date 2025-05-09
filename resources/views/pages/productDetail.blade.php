@@ -55,9 +55,9 @@
                     @foreach($images[0]->product_images as $image)
                         <div class="col-sm-6 col-12">
                             <div class="card">
-                                <div class="card-body">
+                                <a class="card-body" href="{{$image['thumb']}}" data-lightbox="gallery" data-title="image">
                                     <img style="width: 90%; height: 90%;background-size: cover"  src="{{$image['thumb']}}">
-                                </div>
+                                </a>
                             </div>
                         </div>
             @endforeach
@@ -71,4 +71,10 @@
             @endif
         </div>
     </div>
+   <script>
+       lightbox.option({
+           'resizeDuration': 200,
+           'wrapAround': true
+       })
+   </script>
 @endsection
