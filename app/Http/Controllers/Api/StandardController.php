@@ -17,7 +17,48 @@ class StandardController extends Controller
     protected $validStandardTypes = [
         'honey_standard',
         'dairy_standard',
-        'crop_standard'
+        'crop_standard',
+        // Add any additional categories as needed
+        'other_standard',
+        'images',
+        'documents'
+    ];
+
+    /**
+     * File type mappings for better categorization
+     */
+    protected $fileTypeMap = [
+        // Images
+        'jpg' => 'image',
+        'jpeg' => 'image',
+        'png' => 'image',
+        'gif' => 'image',
+        'svg' => 'image',
+        'webp' => 'image',
+        'bmp' => 'image',
+        'heic' => 'image',
+        'heif' => 'image',
+        
+        // Documents
+        'pdf' => 'document',
+        'doc' => 'document',
+        'docx' => 'document',
+        'xls' => 'spreadsheet',
+        'xlsx' => 'spreadsheet',
+        'ppt' => 'presentation',
+        'pptx' => 'presentation',
+        'txt' => 'document',
+        'rtf' => 'document',
+        'odt' => 'document',
+        'ods' => 'spreadsheet',
+        'odp' => 'presentation',
+        
+        // Other
+        'csv' => 'data',
+        'json' => 'data',
+        'xml' => 'data',
+        'zip' => 'archive',
+        'rar' => 'archive'
     ];
 
     /**
@@ -30,8 +71,8 @@ class StandardController extends Controller
     {
         // Validate request
         $validator = Validator::make($request->all(), [
-            'slug' => 'required|string|in:honey_standard,dairy_standard,crop_standard',
-            'file' => 'required|file|max:10240',
+            'slug' => 'required|string|in:' . implode(',', $this->validStandardTypes),
+            'file' => 'required|file|mimes:jpeg,png,jpg,gif,svg,webp,bmp,heic,heif,pdf,doc,docx,xls,xlsx,ppt,pptx,txt,rtf,odt,ods,odp,csv,json,xml,zip,rar|max:20480',
         ]);
 
         if ($validator->fails()) {
@@ -41,6 +82,11 @@ class StandardController extends Controller
         $user = Auth::user();
         $file = $request->file('file');
         $slug = $request->slug;
+
+        // Get file extension and determine file type category
+        $extension = strtolower($file->getClientOriginalExtension());
+        $fileCategory = $this->fileTypeMap[$extension] ?? 'other';
+        $isImage = ($fileCategory === 'image');
 
         // Store the file
         $path = $file->store("users/{$user->id}/standards/{$slug}");
@@ -60,8 +106,10 @@ class StandardController extends Controller
         $standard->file_url = $standard->file_url;
 
         return response()->json([
-            'message' => 'Standard file uploaded successfully',
-            'standard' => $standard
+            'message' => 'File uploaded successfully',
+            'standard' => $standard,
+            'file_category' => $fileCategory,
+            'is_image' => $isImage
         ], 201);
     }
 
@@ -81,7 +129,7 @@ class StandardController extends Controller
         if ($slug) {
             if (!in_array($slug, $this->validStandardTypes)) {
                 return response()->json([
-                    'message' => 'Invalid standard type'
+                    'message' => 'Invalid standard type. Valid types are: ' . implode(', ', $this->validStandardTypes)
                 ], 400);
             }
 
@@ -93,6 +141,11 @@ class StandardController extends Controller
         // Add file URLs to each standard
         $standards->each(function($standard) {
             $standard->file_url = $standard->file_url;
+            
+            // Add file type categorization
+            $extension = strtolower(pathinfo($standard->file_name, PATHINFO_EXTENSION));
+            $standard->file_category = $this->fileTypeMap[$extension] ?? 'other';
+            $standard->is_image = ($standard->file_category === 'image');
         });
 
         return response()->json($standards);
