@@ -7,7 +7,9 @@ use App\Http\Controllers\ProductController;
 use App\Http\Controllers\UserController;
 use App\Http\Controllers\WelcomeController;
 use Illuminate\Support\Facades\Route;
-
+Route::fallback(function () {
+    return response()->view('pages.errors.404', [], 404);
+});
 Route::get('/',[WelcomeController::class,'index'])->name('home');
 
 Route::post('/login', [LoginController::class, 'login'])->name('login');
