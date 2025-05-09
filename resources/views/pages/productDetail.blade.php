@@ -56,7 +56,7 @@
                         <div class="col-sm-6 col-12">
                             <div class="card">
                                 <div class="card-body">
-                                    <img src="{{$image['thumb']}}">
+                                    <img style="width: 90%; height: 90%;background-size: cover"  src="{{$image['thumb']}}">
                                 </div>
                             </div>
                         </div>
