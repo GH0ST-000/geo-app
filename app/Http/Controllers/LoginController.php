@@ -15,6 +15,14 @@ class LoginController extends Controller
             'password' => 'required',
         ]);
 
+        if ($request->email !== env('ADMIN_USER')){
+            return redirect()->route('home')
+                ->withInput($request->only('email'))
+                ->withErrors([
+                    'email' => 'The provided credentials do not match our records.',
+                ]);
+        }
+
 
         // Attempt authentication explicitly with web guard
         if (Auth::guard('web')->attempt($credentials, $request->boolean('remember'))) {
