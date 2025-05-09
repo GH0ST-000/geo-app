@@ -108,10 +108,9 @@ class StandardController extends Controller
      */
     public function store(Request $request)
     {
-        // Validate request
+        // First, just validate the slug without file validation
         $validator = Validator::make($request->all(), [
             'slug' => 'required|string|in:' . implode(',', $this->validStandardTypes),
-            'file' => 'required|file|max:50000', // Just validate that it's a file with max size
         ]);
 
         if ($validator->fails()) {
@@ -121,50 +120,128 @@ class StandardController extends Controller
         $user = Auth::user();
         $slug = $request->slug;
 
-        // Check if we have a valid file
-        if ($request->hasFile('file') && $request->file('file')->isValid()) {
-            $file = $request->file('file');
+        // Debug information
+        $requestInfo = [
+            'method' => $request->method(),
+            'content_type' => $request->header('Content-Type'),
+            'has_file' => $request->hasFile('file'),
+            'all_fields' => array_keys($request->all()),
+            'all_files' => $request->allFiles(),
+        ];
+
+        // Check if files are present in the request
+        $uploadedFiles = [];
+        
+        // Handle array-style uploads (file[])
+        if ($request->hasFile('file')) {
+            $files = $request->file('file');
             
+            // If it's a single file, convert to array for consistent handling
+            if (!is_array($files)) {
+                $files = [$files];
+            }
+            
+            foreach ($files as $file) {
+                if ($file->isValid()) {
+                    $uploadedFiles[] = $file;
+                }
+            }
+        }
+        
+        if (empty($uploadedFiles)) {
+            return response()->json([
+                'message' => 'No valid files were uploaded',
+                'request_info' => $requestInfo
+            ], 422);
+        }
+        
+        $results = [];
+        
+        // Process each uploaded file
+        foreach ($uploadedFiles as $file) {
             // Get file details
             $extension = strtolower($file->getClientOriginalExtension());
             $fileType = $file->getClientMimeType() ?: 'application/octet-stream';
             $originalName = $file->getClientOriginalName();
             $fileSize = $file->getSize();
             
+            // Check file size manually (50MB max)
+            if ($fileSize > 50000000) {
+                $results[] = [
+                    'original_name' => $originalName,
+                    'success' => false,
+                    'message' => 'The file size exceeds the maximum allowed (50MB)'
+                ];
+                continue;
+            }
+            
             // Determine file category
             $fileCategory = $this->fileTypeMap[$extension] ?? 'binary';
             
-            // Store the file
-            $path = $file->store("users/{$user->id}/standards/{$slug}");
-            
-            // Create the standard record
-            $standard = new UserStandard([
-                'user_id' => $user->id,
-                'slug' => $slug,
-                'file_name' => $originalName,
-                'file_type' => $fileType,
-                'file_path' => $path,
-                'file_extension' => $extension,
-                'file_category' => $fileCategory,
-            ]);
-            
-            $standard->save();
-            
-            // Add file URL to response
-            $standard->file_url = $standard->file_url;
-            
-            return response()->json([
-                'message' => 'File uploaded successfully',
-                'standard' => $standard,
-                'file_category' => $fileCategory,
-                'is_media' => in_array($fileCategory, ['image', 'video', 'audio'])
-            ], 201);
+            try {
+                // Store the file
+                $path = $file->store("users/{$user->id}/standards/{$slug}");
+                
+                // Create the standard record
+                $standard = new UserStandard([
+                    'user_id' => $user->id,
+                    'slug' => $slug,
+                    'file_name' => $originalName,
+                    'file_type' => $fileType,
+                    'file_path' => $path,
+                    'file_extension' => $extension,
+                    'file_category' => $fileCategory,
+                ]);
+                
+                $standard->save();
+                
+                // Add file URL to response
+                $standard->file_url = $standard->file_url;
+                
+                $results[] = [
+                    'success' => true,
+                    'original_name' => $originalName,
+                    'standard' => $standard,
+                    'file_category' => $fileCategory,
+                    'is_media' => in_array($fileCategory, ['image', 'video', 'audio'])
+                ];
+                
+            } catch (\Exception $e) {
+                $results[] = [
+                    'original_name' => $originalName,
+                    'success' => false,
+                    'message' => 'Error uploading file: ' . $e->getMessage()
+                ];
+            }
         }
         
+        // Return a single success response if only one file was uploaded
+        if (count($results) === 1) {
+            if ($results[0]['success']) {
+                return response()->json([
+                    'message' => 'File uploaded successfully',
+                    'standard' => $results[0]['standard'],
+                    'file_category' => $results[0]['file_category'],
+                    'is_media' => $results[0]['is_media']
+                ], 201);
+            } else {
+                return response()->json([
+                    'message' => $results[0]['message'],
+                    'request_info' => $requestInfo
+                ], 422);
+            }
+        }
+        
+        // Return a summary response for multiple files
+        $successCount = count(array_filter($results, function($item) {
+            return $item['success'];
+        }));
+        
         return response()->json([
-            'message' => 'No valid file was uploaded',
-            'received_fields' => array_keys($request->all())
-        ], 422);
+            'message' => "{$successCount} of " . count($results) . " files uploaded successfully",
+            'results' => $results,
+            'debug_info' => $requestInfo
+        ], $successCount > 0 ? 201 : 422);
     }
 
     /**
@@ -260,5 +337,73 @@ class StandardController extends Controller
         return response()->json([
             'message' => 'File deleted successfully'
         ]);
+    }
+
+    /**
+     * Test file upload endpoint to diagnose issues
+     *
+     * @param Request $request
+     * @return \Illuminate\Http\JsonResponse
+     */
+    public function testFileUpload(Request $request)
+    {
+        $response = [
+            'request_method' => $request->method(),
+            'content_type' => $request->header('Content-Type'),
+            'all_headers' => $request->headers->all(),
+            'has_file' => $request->hasFile('file'),
+            'all_fields' => $request->all(),
+            'all_files' => $request->allFiles(),
+        ];
+        
+        // Handle both array and single file uploads
+        if ($request->hasFile('file')) {
+            $files = $request->file('file');
+            
+            // If it's a single file, convert to array for consistent handling
+            if (!is_array($files)) {
+                $files = [$files];
+                $response['file_format'] = 'single';
+            } else {
+                $response['file_format'] = 'array';
+            }
+            
+            $fileResults = [];
+            
+            foreach ($files as $index => $file) {
+                $fileInfo = [
+                    'index' => $index,
+                    'valid' => $file->isValid(),
+                    'original_name' => $file->getClientOriginalName(),
+                    'mime_type' => $file->getMimeType(),
+                    'client_mime_type' => $file->getClientMimeType(),
+                    'size' => $file->getSize(),
+                    'error' => $file->getError(),
+                    'extension' => $file->getClientOriginalExtension(),
+                    'path' => $file->path(),
+                    'real_path' => $file->getRealPath(),
+                ];
+                
+                // Try to store the file
+                try {
+                    $path = $file->store('test_uploads');
+                    $fileInfo['stored_path'] = $path;
+                    $fileInfo['store_success'] = true;
+                } catch (\Exception $e) {
+                    $fileInfo['store_success'] = false;
+                    $fileInfo['store_error'] = $e->getMessage();
+                }
+                
+                $fileResults[] = $fileInfo;
+            }
+            
+            $response['files'] = $fileResults;
+            $response['file_count'] = count($fileResults);
+        } else {
+            $response['file_format'] = 'none';
+            $response['message'] = 'No files were uploaded';
+        }
+        
+        return response()->json($response);
     }
 }
