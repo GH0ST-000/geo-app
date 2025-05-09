@@ -12,8 +12,7 @@ return new class extends Migration
     public function up(): void
     {
         Schema::table('user_standards', function (Blueprint $table) {
-            $table->string('file_extension')->nullable()->after('file_path');
-            $table->string('file_category')->nullable()->after('file_extension');
+            //
         });
     }
 
@@ -23,8 +22,7 @@ return new class extends Migration
     public function down(): void
     {
         Schema::table('user_standards', function (Blueprint $table) {
-            $table->dropColumn('file_extension');
-            $table->dropColumn('file_category');
+            //
         });
     }
 };

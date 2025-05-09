@@ -8,6 +8,7 @@ use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Storage;
 use Illuminate\Support\Facades\Validator;
+use Illuminate\Support\Str;
 
 class StandardController extends Controller
 {
@@ -23,7 +24,8 @@ class StandardController extends Controller
         'documents',
         'videos',
         'audio',
-        'spreadsheets'
+        'spreadsheets',
+        'binary'
     ];
 
     /**
@@ -81,7 +83,21 @@ class StandardController extends Controller
         'json' => 'data',
         'xml' => 'data',
         'zip' => 'archive',
-        'rar' => 'archive'
+        'rar' => 'archive',
+        
+        // Binary and executable formats
+        'bin' => 'binary',
+        'exe' => 'binary',
+        'dll' => 'binary',
+        'so' => 'binary',
+        'dylib' => 'binary',
+        'class' => 'binary',
+        'jar' => 'binary',
+        'dat' => 'binary',
+        'iso' => 'binary',
+        'img' => 'binary',
+        'apk' => 'binary',
+        'dmg' => 'binary'
     ];
 
     /**
@@ -95,7 +111,7 @@ class StandardController extends Controller
         // Validate request
         $validator = Validator::make($request->all(), [
             'slug' => 'required|string|in:' . implode(',', $this->validStandardTypes),
-            'file' => 'required|file|max:50000', // 50MB max size to allow for larger files
+            'file' => 'required|file|max:50000', // Just validate that it's a file with max size
         ]);
 
         if ($validator->fails()) {
@@ -103,38 +119,52 @@ class StandardController extends Controller
         }
 
         $user = Auth::user();
-        $file = $request->file('file');
         $slug = $request->slug;
 
-        // Get file extension and determine file type category
-        $extension = strtolower($file->getClientOriginalExtension());
-        $fileCategory = $this->fileTypeMap[$extension] ?? 'other';
-
-        // Store the file
-        $path = $file->store("users/{$user->id}/standards/{$slug}");
-
-        // Create the standard record
-        $standard = new UserStandard([
-            'user_id' => $user->id,
-            'slug' => $slug,
-            'file_name' => $file->getClientOriginalName(),
-            'file_type' => $file->getClientMimeType(),
-            'file_path' => $path,
-            'file_extension' => $extension,
-            'file_category' => $fileCategory,
-        ]);
-
-        $standard->save();
-
-        // Add file URL to response
-        $standard->file_url = $standard->file_url;
-
+        // Check if we have a valid file
+        if ($request->hasFile('file') && $request->file('file')->isValid()) {
+            $file = $request->file('file');
+            
+            // Get file details
+            $extension = strtolower($file->getClientOriginalExtension());
+            $fileType = $file->getClientMimeType() ?: 'application/octet-stream';
+            $originalName = $file->getClientOriginalName();
+            $fileSize = $file->getSize();
+            
+            // Determine file category
+            $fileCategory = $this->fileTypeMap[$extension] ?? 'binary';
+            
+            // Store the file
+            $path = $file->store("users/{$user->id}/standards/{$slug}");
+            
+            // Create the standard record
+            $standard = new UserStandard([
+                'user_id' => $user->id,
+                'slug' => $slug,
+                'file_name' => $originalName,
+                'file_type' => $fileType,
+                'file_path' => $path,
+                'file_extension' => $extension,
+                'file_category' => $fileCategory,
+            ]);
+            
+            $standard->save();
+            
+            // Add file URL to response
+            $standard->file_url = $standard->file_url;
+            
+            return response()->json([
+                'message' => 'File uploaded successfully',
+                'standard' => $standard,
+                'file_category' => $fileCategory,
+                'is_media' => in_array($fileCategory, ['image', 'video', 'audio'])
+            ], 201);
+        }
+        
         return response()->json([
-            'message' => 'File uploaded successfully',
-            'standard' => $standard,
-            'file_category' => $fileCategory,
-            'is_media' => in_array($fileCategory, ['image', 'video', 'audio'])
-        ], 201);
+            'message' => 'No valid file was uploaded',
+            'received_fields' => array_keys($request->all())
+        ], 422);
     }
 
     /**
@@ -185,7 +215,7 @@ class StandardController extends Controller
             // Add file type categorization if not already set
             if (!isset($standard->file_category)) {
                 $extension = strtolower(pathinfo($standard->file_name, PATHINFO_EXTENSION));
-                $standard->file_category = $this->fileTypeMap[$extension] ?? 'other';
+                $standard->file_category = $this->fileTypeMap[$extension] ?? 'binary';
             }
             
             $standard->is_image = ($standard->file_category === 'image');
@@ -193,6 +223,7 @@ class StandardController extends Controller
             $standard->is_audio = ($standard->file_category === 'audio');
             $standard->is_document = ($standard->file_category === 'document');
             $standard->is_spreadsheet = ($standard->file_category === 'spreadsheet');
+            $standard->is_binary = ($standard->file_category === 'binary');
             $standard->is_media = in_array($standard->file_category, ['image', 'video', 'audio']);
         });
 
