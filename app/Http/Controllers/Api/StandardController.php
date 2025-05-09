@@ -19,7 +19,7 @@ class StandardController extends Controller
         'dairy_standard',
         'crop_standard'
     ];
-    
+
     /**
      * Store a new standard file
      *
@@ -31,7 +31,7 @@ class StandardController extends Controller
         // Validate request
         $validator = Validator::make($request->all(), [
             'slug' => 'required|string|in:honey_standard,dairy_standard,crop_standard',
-            'file' => 'required|file|max:10240', // 10MB max
+            'file' => 'required|file|max:10240',
         ]);
 
         if ($validator->fails()) {
@@ -41,10 +41,10 @@ class StandardController extends Controller
         $user = Auth::user();
         $file = $request->file('file');
         $slug = $request->slug;
-        
+
         // Store the file
         $path = $file->store("users/{$user->id}/standards/{$slug}");
-        
+
         // Create the standard record
         $standard = new UserStandard([
             'user_id' => $user->id,
@@ -53,18 +53,18 @@ class StandardController extends Controller
             'file_type' => $file->getClientMimeType(),
             'file_path' => $path,
         ]);
-        
+
         $standard->save();
-        
+
         // Add file URL to response
         $standard->file_url = $standard->file_url;
-        
+
         return response()->json([
             'message' => 'Standard file uploaded successfully',
             'standard' => $standard
         ], 201);
     }
-    
+
     /**
      * Get user standards by type or all
      *
@@ -76,7 +76,7 @@ class StandardController extends Controller
     {
         $user = Auth::user();
         $query = $user->standards();
-        
+
         // Filter by slug if provided
         if ($slug) {
             if (!in_array($slug, $this->validStandardTypes)) {
@@ -84,20 +84,20 @@ class StandardController extends Controller
                     'message' => 'Invalid standard type'
                 ], 400);
             }
-            
+
             $query->where('slug', $slug);
         }
-        
+
         $standards = $query->latest()->get();
-        
+
         // Add file URLs to each standard
         $standards->each(function($standard) {
             $standard->file_url = $standard->file_url;
         });
-        
+
         return response()->json($standards);
     }
-    
+
     /**
      * Delete a standard file
      *
@@ -110,21 +110,21 @@ class StandardController extends Controller
         $standard = UserStandard::where('id', $id)
             ->where('user_id', $user->id)
             ->first();
-            
+
         if (!$standard) {
             return response()->json([
                 'message' => 'Standard not found or you do not have permission to delete it'
             ], 404);
         }
-        
+
         // Delete the file from storage
         if ($standard->file_path) {
             Storage::delete($standard->file_path);
         }
-        
+
         // Delete the record
         $standard->delete();
-        
+
         return response()->json([
             'message' => 'Standard file deleted successfully'
         ]);
