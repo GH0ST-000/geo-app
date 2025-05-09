@@ -4,6 +4,7 @@ namespace App\Http\Controllers\Api;
 
 use App\Http\Controllers\Controller;
 use App\Models\Product;
+use App\Models\User;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Validator;
@@ -258,7 +259,7 @@ class ProductController extends Controller
         $products->getCollection()->transform(function ($product) {
             $product->product_images = $product->getProductImagesAttribute();
             $product->user = [
-                'id' => $product->user->id,
+                'ulid' => $product->user->ulid,
                 'first_name' => $product->user->first_name,
                 'last_name' => $product->user->last_name,
                 'profile_picture_url' => $product->user->profile_picture_url,
@@ -283,7 +284,7 @@ class ProductController extends Controller
         
         // Transform user data
         $product->user = [
-            'id' => $product->user->id,
+            'ulid' => $product->user->ulid,
             'first_name' => $product->user->first_name,
             'last_name' => $product->user->last_name,
             'profile_picture_url' => $product->user->profile_picture_url,
@@ -330,15 +331,24 @@ class ProductController extends Controller
     /**
      * Get products for a specific user (public endpoint)
      * 
-     * @param string $userId User ID
+     * @param string $ulid User's ULID
      * @return \Illuminate\Http\JsonResponse
      */
-    public function getUserProducts(string $userId, Request $request)
+    public function getUserProducts(string $ulid, Request $request)
     {
         $perPage = $request->get('per_page', 10);
         
+        // Find the user by ULID first
+        $user = User::where('ulid', $ulid)->first();
+        
+        if (!$user) {
+            return response()->json([
+                'message' => 'User not found'
+            ], 404);
+        }
+        
         $query = Product::with(['media', 'user'])
-            ->where('user_id', $userId)
+            ->where('user_id', $user->id) // Use the actual user ID from the found user
             ->where('is_active', true)
             ->orderBy('created_at', 'desc');
         
@@ -352,7 +362,7 @@ class ProductController extends Controller
             // Include basic user info
             if ($product->user) {
                 $productArray['user'] = [
-                    'id' => $product->user->id,
+                    'ulid' => $product->user->ulid, // Use ULID instead of ID
                     'first_name' => $product->user->first_name,
                     'last_name' => $product->user->last_name,
                     'profile_picture_url' => $product->user->profile_picture_url,
