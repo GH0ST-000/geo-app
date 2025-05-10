@@ -64,7 +64,7 @@ class UserController extends Controller
             
         // Transform users to include profile picture URL and hide sensitive data
         $transformedUsers = $users->getCollection()->map(function ($user) {
-            return [
+            $userData = [
                 'ulid' => $user->ulid, // Use ULID instead of ID
                 'first_name' => $user->first_name,
                 'last_name' => $user->last_name,
@@ -78,6 +78,13 @@ class UserController extends Controller
                 'is_verified' => $user->is_verified,
                 'user_type' => $user->user_type,
             ];
+            
+            // Include QR code only if user is active
+            if ($user->is_active) {
+                $userData['qr_code'] = $user->qr_code;
+            }
+            
+            return $userData;
         });
         
         // Create a new paginator with transformed users
@@ -129,6 +136,11 @@ class UserController extends Controller
             'profile_medium_url' => $user->profile_medium_url,
             'profile_large_url' => $user->profile_large_url,
         ];
+        
+        // Include QR code only if user is active
+        if ($user->is_active) {
+            $userData['qr_code'] = $user->qr_code;
+        }
         
         return response()->json($userData, 200, [], JSON_UNESCAPED_UNICODE);
     }
