@@ -23,7 +23,7 @@ class ApplicationControler extends Controller
         ];
 
         // Get all applications
-        $applications = UserStandard::all();
+        $applications = UserStandard::orderBy('id','desc')->get();
 
         // Group applications by group_id
         $groupedApplications = [];

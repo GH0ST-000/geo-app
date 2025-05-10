@@ -77,7 +77,7 @@
         // });
 
         $('#dataTable').DataTable({
-            "ordering": true,
+            "ordering": false,
             "searching": true
         });
         // $('#dataTableExample_sortable').DataTable({
