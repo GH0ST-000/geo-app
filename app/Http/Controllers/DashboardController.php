@@ -26,22 +26,74 @@ class DashboardController extends Controller
             'crop_standard' => 'მემცენარეობის მოდული',
         ];
 
-        // Use eager loading to reduce queries and transform data in one go
-        $recentApplications = UserStandard::with('user')
-            ->orderBy('created_at', 'desc')
-            ->take(3)
-            ->get()
-            ->map(function($application) use ($standardLabels) {
-                return [
-                    'id' => $application->id,
-                    'fullName' => $application->user->first_name . ' ' . $application->user->last_name,
-                    'standard' => $standardLabels[$application->slug] ?? $application->slug,
-                    'created_at' => $application->created_at->diffForHumans()
+        $standard = [
+            'honey_standard' => 'თაფლის მოდული',
+            'dairy_standard' => 'რძის მოდული',
+            'crop_standard' =>'მემცენარეობის მოდული',
+            'other_standard' => 'სხვა მოდული',
+            'images' => 'სურათები',
+            'documents' => 'დოკუმენტები',
+            'videos' => 'ვიდეოები',
+            'audio' => 'აუდიო',
+            'spreadsheets' => 'ელცხრილები',
+            'binary' => 'ბინარული ფაილები'
+        ];
+
+        // Get all applications
+        $applications = UserStandard::all();
+
+        // Group applications by group_id
+        $groupedApplications = [];
+
+        // First, handle applications with group_id
+        $withGroupId = $applications->whereNotNull('group_id')->groupBy('group_id');
+
+        foreach ($withGroupId as $groupId => $group) {
+            // Get the first application in the group
+            $firstApp = $group->first();
+            $user = User::where('id', $firstApp->user_id)->first();
+
+            if ($user) {
+                $groupedApplications[] = [
+                    'id' => $firstApp->id,
+                    'fullName' => $user->first_name . ' ' . $user->last_name,
+                    'standard' => $standard[$firstApp->slug] ?? $firstApp->slug,
+                    'created_at' => $firstApp->created_at->diffForHumans(),
+                    'is_group' => true,
+                    'group_id' => $groupId,
+                    'file_count' => $group->count(),
+                    'is_verified' => $firstApp->is_verified,
+                    'files' => $group->pluck('file_name')->toArray()
                 ];
-            });
+            }
+        }
+
+        // Then, handle applications without group_id
+        $withoutGroupId = $applications->whereNull('group_id');
+
+        foreach ($withoutGroupId as $application) {
+            $user = User::where('id', $application->user_id)->first();
+
+            if ($user) {
+                $groupedApplications[] = [
+                    'id' => $application->id,
+                    'fullName' => $user->first_name . ' ' . $user->last_name,
+                    'standard' => $standard[$application->slug] ?? $application->slug,
+                    'created_at' => $application->created_at->diffForHumans(),
+                    'is_group' => false,
+                    'file_count' => 1,
+                    'files' => [$application->file_name]
+                ];
+            }
+        }
+
+        // Sort by created_at (newest first)
+        usort($groupedApplications, function($a, $b) {
+            return strtotime(str_replace(' ago', '', $b['created_at'])) <=> strtotime(str_replace(' ago', '', $a['created_at']));
+        });
 
         return view('pages.dashboard', array_merge($statisticsData, [
-            'applications' => $recentApplications
+            'applications' => $groupedApplications
         ]));
     }
 }
