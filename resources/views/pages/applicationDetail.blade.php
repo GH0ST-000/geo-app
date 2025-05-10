@@ -44,7 +44,9 @@
                             <div class="col-sm-3 col-12">
                                 <div class="card">
                                     <a class="card-body" href="{{$image->file_url}}" data-lightbox="gallery" data-title="image">
-                                        <img style="width: 90%; height: 90%;background-size: cover"  src="{{$image->file_url}}">
+                                        <div style="width: 100%; padding-top: 100%; position: relative;">
+                                            <img style="position: absolute; top: 0; left: 0; width: 100%; height: 100%; object-fit: cover;" src="{{$image->file_url}}">
+                                        </div>
                                     </a>
                                 </div>
                             </div>
