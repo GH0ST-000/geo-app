@@ -155,6 +155,8 @@ class StandardController extends Controller
             ], 422);
         }
         
+        // Generate a group ID for this upload batch
+        $groupId = (string) Str::uuid();
         $results = [];
         
         // Process each uploaded file
@@ -185,6 +187,7 @@ class StandardController extends Controller
                 // Create the standard record
                 $standard = new UserStandard([
                     'user_id' => $user->id,
+                    'group_id' => $groupId,
                     'slug' => $slug,
                     'file_name' => $originalName,
                     'file_type' => $fileType,
@@ -222,7 +225,8 @@ class StandardController extends Controller
                     'message' => 'File uploaded successfully',
                     'standard' => $results[0]['standard'],
                     'file_category' => $results[0]['file_category'],
-                    'is_media' => $results[0]['is_media']
+                    'is_media' => $results[0]['is_media'],
+                    'group_id' => $groupId
                 ], 201);
             } else {
                 return response()->json([
@@ -237,9 +241,17 @@ class StandardController extends Controller
             return $item['success'];
         }));
         
+        // Get all successful standards
+        $standards = array_map(function($item) {
+            return $item['success'] ? $item['standard'] : null;
+        }, $results);
+        $standards = array_filter($standards);
+        
         return response()->json([
             'message' => "{$successCount} of " . count($results) . " files uploaded successfully",
             'results' => $results,
+            'standards' => $standards,
+            'group_id' => $groupId,
             'debug_info' => $requestInfo
         ], $successCount > 0 ? 201 : 422);
     }
@@ -282,8 +294,49 @@ class StandardController extends Controller
                 });
             }
         }
-
-        $standards = $query->latest()->get();
+        
+        // Group files by group_id when requested
+        $grouped = $request->has('grouped') && $request->input('grouped') == 'true';
+        
+        if ($grouped) {
+            // First get all distinct group_ids
+            $groupIds = $query->whereNotNull('group_id')
+                             ->select('group_id')
+                             ->distinct()
+                             ->pluck('group_id')
+                             ->toArray();
+            
+            // For each group, get the first file to represent the group
+            $standards = collect();
+            foreach ($groupIds as $groupId) {
+                $firstFile = UserStandard::where('group_id', $groupId)
+                                        ->where('user_id', $user->id)
+                                        ->first();
+                
+                if ($firstFile) {
+                    // Add a count of related files
+                    $fileCount = UserStandard::where('group_id', $groupId)->count();
+                    $firstFile->file_count = $fileCount;
+                    $firstFile->is_group = true;
+                    
+                    $standards->push($firstFile);
+                }
+            }
+            
+            // Add single files (without group_id)
+            $singleFiles = $query->whereNull('group_id')->get();
+            foreach ($singleFiles as $file) {
+                $file->file_count = 1;
+                $file->is_group = false;
+                $standards->push($file);
+            }
+            
+            // Sort by created_at
+            $standards = $standards->sortByDesc('created_at')->values();
+        } else {
+            // Return all files individually (original behavior)
+            $standards = $query->latest()->get();
+        }
 
         // Add file information to each standard
         $standards->each(function($standard) {
@@ -306,14 +359,60 @@ class StandardController extends Controller
 
         return response()->json($standards);
     }
+    
+    /**
+     * Get all files in a group
+     *
+     * @param string $groupId
+     * @return \Illuminate\Http\JsonResponse
+     */
+    public function getGroup($groupId)
+    {
+        $user = Auth::user();
+        $standards = UserStandard::where('group_id', $groupId)
+                                ->where('user_id', $user->id)
+                                ->latest()
+                                ->get();
+        
+        if ($standards->isEmpty()) {
+            return response()->json([
+                'message' => 'Group not found or you do not have permission to view it'
+            ], 404);
+        }
+        
+        // Add file information to each standard
+        $standards->each(function($standard) {
+            $standard->file_url = $standard->file_url;
+            
+            if (!isset($standard->file_category)) {
+                $extension = strtolower(pathinfo($standard->file_name, PATHINFO_EXTENSION));
+                $standard->file_category = $this->fileTypeMap[$extension] ?? 'binary';
+            }
+            
+            $standard->is_image = ($standard->file_category === 'image');
+            $standard->is_video = ($standard->file_category === 'video');
+            $standard->is_audio = ($standard->file_category === 'audio');
+            $standard->is_document = ($standard->file_category === 'document');
+            $standard->is_spreadsheet = ($standard->file_category === 'spreadsheet');
+            $standard->is_binary = ($standard->file_category === 'binary');
+            $standard->is_media = in_array($standard->file_category, ['image', 'video', 'audio']);
+        });
+        
+        return response()->json([
+            'group_id' => $groupId,
+            'files' => $standards,
+            'count' => $standards->count()
+        ]);
+    }
 
     /**
      * Delete a standard file
      *
+     * @param Request $request
      * @param int $id Standard ID
      * @return \Illuminate\Http\JsonResponse
      */
-    public function destroy($id)
+    public function destroy(Request $request, $id)
     {
         $user = Auth::user();
         $standard = UserStandard::where('id', $id)
@@ -326,17 +425,39 @@ class StandardController extends Controller
             ], 404);
         }
 
-        // Delete the file from storage
-        if ($standard->file_path) {
-            Storage::delete($standard->file_path);
+        // Check if this is part of a group
+        $groupId = $standard->group_id;
+        $deleteGroup = $request->input('delete_group', false) && $groupId;
+        
+        if ($deleteGroup) {
+            // Delete all files in the group
+            $groupFiles = UserStandard::where('group_id', $groupId)
+                                   ->where('user_id', $user->id)
+                                   ->get();
+            
+            foreach ($groupFiles as $file) {
+                if ($file->file_path) {
+                    Storage::delete($file->file_path);
+                }
+                $file->delete();
+            }
+            
+            return response()->json([
+                'message' => 'File group deleted successfully',
+                'count' => $groupFiles->count()
+            ]);
+        } else {
+            // Delete just this file
+            if ($standard->file_path) {
+                Storage::delete($standard->file_path);
+            }
+            
+            $standard->delete();
+            
+            return response()->json([
+                'message' => 'File deleted successfully'
+            ]);
         }
-
-        // Delete the record
-        $standard->delete();
-
-        return response()->json([
-            'message' => 'File deleted successfully'
-        ]);
     }
 
     /**

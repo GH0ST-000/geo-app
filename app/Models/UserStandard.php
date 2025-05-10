@@ -17,10 +17,13 @@ class UserStandard extends Model
      */
     protected $fillable = [
         'user_id',
+        'group_id',
         'slug',
         'file_name',
         'file_type',
         'file_path',
+        'file_extension',
+        'file_category',
     ];
 
     /**
@@ -29,6 +32,18 @@ class UserStandard extends Model
     public function user()
     {
         return $this->belongsTo(User::class);
+    }
+
+    /**
+     * Get related files in the same group.
+     */
+    public function relatedFiles()
+    {
+        if (!$this->group_id) {
+            return UserStandard::where('id', $this->id);
+        }
+        
+        return UserStandard::where('group_id', $this->group_id);
     }
 
     /**
