@@ -6,38 +6,42 @@ use App\Models\Product;
 use App\Models\User;
 use App\Models\UserStandard;
 use Illuminate\Http\Request;
+use Illuminate\View\View;
 
 class DashboardController extends Controller
 {
-    public function index()
+    public function index(): View
     {
-        $data = [
-            'user'=>User::count(),
-            'product'=>Product::count(),
-            'application' =>UserStandard::count()
+        // Extract statistics data
+        $statisticsData = [
+            'user' => User::count(),
+            'product' => Product::count(),
+            'application' => UserStandard::count()
         ];
 
-
-
-        $standard = [
+        // Extract to a constant or config value
+        $standardLabels = [
             'honey_standard' => 'თაფლის მოდული',
             'dairy_standard' => 'რძის მოდული',
-            'crop_standard' =>'მემცენარეობის მოდული',
+            'crop_standard' => 'მემცენარეობის მოდული',
         ];
-        $applications = UserStandard::orderBy('created_at','desc')->take(3)->get();
-        $data1 =[];
-        if (!empty($applications)){
-            foreach ($applications as $application){
-                $user = User::where('id',$application->user_id)->first();
 
-                $data1 [] =[
-                    'id'=>$application->id,
-                    'fullName'=>$user->first_name . ' '. $user->last_name,
-                    'standard'=>$standard[$application->slug],
-                    'created_at'=>$application->created_at->diffForHumans()
+        // Use eager loading to reduce queries and transform data in one go
+        $recentApplications = UserStandard::with('user')
+            ->orderBy('created_at', 'desc')
+            ->take(3)
+            ->get()
+            ->map(function($application) use ($standardLabels) {
+                return [
+                    'id' => $application->id,
+                    'fullName' => $application->user->first_name . ' ' . $application->user->last_name,
+                    'standard' => $standardLabels[$application->slug] ?? $application->slug,
+                    'created_at' => $application->created_at->diffForHumans()
                 ];
-            }
-        }
-        return view('pages.dashboard', array_merge($data, ['applications' => $data1]));
+            });
+
+        return view('pages.dashboard', array_merge($statisticsData, [
+            'applications' => $recentApplications
+        ]));
     }
 }
