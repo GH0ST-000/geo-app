@@ -1,6 +1,5 @@
 @extends('layouts.app')
 @section('content')
-{{--    @dd($otherFiles)--}}
     <div class="mb-3 mt-3">
         <span>განცხადების დეტალური გვერდი</span>
     </div>
@@ -92,13 +91,22 @@
             @endif
         </div>
     </div>
-<div class="mt-3 mb-3 card">
-    <div class="card-body">
-        <div class="d-flex justify-content-end">
-            <button class="btn btn-success">დადასურება</button>
+
+    @if(!$application->is_verified)
+        <div class="mt-3 mb-3 card">
+            <div class="card-body">
+                <form action="{{route('applications-active')}}" method="post">
+                    @csrf
+                    <div class="d-flex justify-content-end">
+                        <input type="hidden" name="user_id" value="{{$user->id}}">
+                        <input type="hidden" name="app_id" value="{{$application->group_id}}">
+                        <button class="btn btn-success">დადასურება</button>
+                    </div>
+                </form>
+
+            </div>
         </div>
-    </div>
-</div>
+    @endif
     <script>
         lightbox.option({
             'resizeDuration': 200,

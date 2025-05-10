@@ -2,7 +2,8 @@
 namespace App\Http\Controllers;
 use App\Models\User;
 use App\Models\UserStandard;
-use Illuminate\Support\Collection;
+use Illuminate\Http\Request;
+
 
 class ApplicationControler extends Controller
 {
@@ -44,6 +45,7 @@ class ApplicationControler extends Controller
                     'is_group' => true,
                     'group_id' => $groupId,
                     'file_count' => $group->count(),
+                    'is_verified' => $firstApp->is_verified,
                     'files' => $group->pluck('file_name')->toArray()
                 ];
             }
@@ -148,6 +150,13 @@ class ApplicationControler extends Controller
            'userName' => $userName,
            'user' => $user
        ]);
+    }
+
+    public function update(Request $request)
+    {
+        User::where('id',$request->user_id)->update(['is_verified'=>true]);
+        UserStandard::where('group_id',$request->app_id)->update(['is_verified'=>true]);
+        return redirect(url('admin/applications'))->with('message','მოქმედება წარმეტებით შესრულდა');
     }
 }
 
