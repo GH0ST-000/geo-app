@@ -40,6 +40,7 @@ class User extends Authenticatable implements JWTSubject, HasMedia
         'is_verified',
         'description',
         'ulid',
+        'qr_code',
     ];
 
     /**
@@ -64,6 +65,8 @@ class User extends Authenticatable implements JWTSubject, HasMedia
         return [
             'email_verified_at' => 'datetime',
             'password' => 'hashed',
+            'is_verified' => 'boolean',
+            'is_active' => 'boolean',
         ];
     }
 
@@ -75,8 +78,16 @@ class User extends Authenticatable implements JWTSubject, HasMedia
         parent::boot();
         
         static::creating(function ($model) {
+            // Generate ULID if not provided
             if (empty($model->ulid)) {
                 $model->ulid = (new Ulid())->toBase32();
+            }
+            
+            // Generate QR code if not provided
+            if (empty($model->qr_code)) {
+                $qrGeneratorUrl = env('QR_GENERATOR', 'https://api.qrserver.com/v1/create-qr-code/?size=500x500&format=png&data=https://geogapp.site/cert-farmer/');
+                // Use ULID for QR code - it's already generated above
+                $model->qr_code = $qrGeneratorUrl . $model->ulid;
             }
         });
     }
