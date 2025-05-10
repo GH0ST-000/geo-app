@@ -30,6 +30,7 @@ Route::prefix('admin')
         Route::controller(ApplicationControler::class)->group(function (){
             Route::get('/applications','index')->name('applications');
             Route::get('/applications/detail/{id}','show')->name('applications-detail');
+            Route::post('/applications/active-user/','update')->name('applications-active');
         });
     });
 

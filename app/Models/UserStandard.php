@@ -24,6 +24,7 @@ class UserStandard extends Model
         'file_path',
         'file_extension',
         'file_category',
+        'is_verified'
     ];
 
     /**
@@ -42,7 +43,7 @@ class UserStandard extends Model
         if (!$this->group_id) {
             return UserStandard::where('id', $this->id);
         }
-        
+
         return UserStandard::where('group_id', $this->group_id);
     }
 
@@ -56,7 +57,7 @@ class UserStandard extends Model
         if ($this->file_path) {
             return Storage::url($this->file_path);
         }
-        
+
         return null;
     }
 }
