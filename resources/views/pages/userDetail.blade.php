@@ -132,4 +132,23 @@
 
         </div>
     </div>
+    <div class="mb-3 mt-3">
+        <span class="badge bg-success">მომხმარებლის QR CODE</span>
+    </div>
+    <div class="card">
+        <div class="card-body">
+           <div class="d-flex justify-content-center align-items-baseline">
+               @if($user->is_verified)
+                   <div class="col-6">
+                       <img src="{{$user->qr_code}}">
+                   </div>
+               @else
+                   <div class="d-flex justify-content-center text-danger">
+                       <span>მომხმარებლის QR CODE არ არსებობს</span>
+                   </div>
+               @endif
+
+           </div>
+        </div>
+    </div>
 @endsection
