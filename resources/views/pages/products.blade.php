@@ -1,5 +1,6 @@
 @extends('layouts.app')
 @section('content')
+
     <div class="mb-3">
         <span>პროდუქტი</span>
     </div>
@@ -12,12 +13,12 @@
                             <table id="dataTable" class="table dataTable no-footer align-middle pb-4" aria-describedby="dataTableExample_info">
                                 <thead>
                                 <tr>
-                                    <th class="sorting sorting_asc" tabindex="0" aria-controls="dataTable" rowspan="1" colspan="1" aria-sort="ascending" aria-label="Name: activate to sort column descending" style="width: 145.57px;">#</th>
-                                    <th class="sorting" tabindex="0" aria-controls="dataTable" rowspan="1" colspan="1" aria-label="Position: activate to sort column ascending" style="width: 205.57px;">მომხმარებელი</th>
-                                    <th class="sorting" tabindex="0" aria-controls="dataTable" rowspan="1" colspan="1" aria-label="Position: activate to sort column ascending" style="width: 205.57px;">პროდუქტის სახელი</th>
-                                    <th class="sorting" tabindex="0" aria-controls="dataTable" rowspan="1" colspan="1" aria-label="Office: activate to sort column ascending" style="width: 175.57px;">მისამართი</th>
-                                    <th class="sorting" tabindex="0" aria-controls="dataTable" rowspan="1" colspan="1" aria-label="Office: activate to sort column ascending" style="width: 175.57px;">მოცულობა</th>
-                                    <th class="sorting" tabindex="0" aria-controls="dataTable" rowspan="1" colspan="1" aria-label="Office: activate to sort column ascending" style="width: 175.57px;">ქმედება</th>
+                                    <th class="" tabindex="0" aria-controls="dataTable" rowspan="1" colspan="1"  style="width: 145.57px;">#</th>
+                                    <th class="" tabindex="0" aria-controls="dataTable" rowspan="1" colspan="1"  style="width: 205.57px;">მომხმარებელი</th>
+                                    <th class="" tabindex="0" aria-controls="dataTable" rowspan="1" colspan="1"  style="width: 205.57px;">პროდუქტის სახელი</th>
+                                    <th class="" tabindex="0" aria-controls="dataTable" rowspan="1" colspan="1"  style="width: 175.57px;">მისამართი</th>
+                                    <th class="" tabindex="0" aria-controls="dataTable" rowspan="1" colspan="1"  style="width: 175.57px;">მოცულობა</th>
+                                    <th class="" tabindex="0" aria-controls="dataTable" rowspan="1" colspan="1"  style="width: 175.57px;">ქმედება</th>
 
                                 </tr>
                                 </thead>
@@ -25,9 +26,9 @@
 
 
                                 @foreach($products as $product)
-                                    <tr class="odd">
-                                        <td class="sorting_1">{{$product->id}}</td>
-                                        <td class="sorting_1">{{
+                                    <tr >
+                                        <td >{{$product->id}}</td>
+                                        <td >{{
                                             \App\Models\User::where('id',$product->user_id)->pluck('first_name')[0]
                                         }}</td>
                                         <td class="align-middle">{{$product->product_name}}</td>

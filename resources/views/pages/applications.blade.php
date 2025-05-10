@@ -19,11 +19,11 @@
                                 <thead>
                                 <tr>
                                     <th class="sorting sorting_asc" tabindex="0" aria-controls="dataTable" rowspan="1" colspan="1" aria-sort="ascending" aria-label="Name: activate to sort column descending" style="width: 145.57px;">#</th>
-                                    <th class="sorting" tabindex="0" aria-controls="dataTable" rowspan="1" colspan="1" aria-label="Position: activate to sort column ascending" style="width: 205.57px;">მომხმარებელი</th>
-                                    <th class="sorting" tabindex="0" aria-controls="dataTable" rowspan="1" colspan="1" aria-label="Position: activate to sort column ascending" style="width: 205.57px;">სტანდარტის ტიპი</th>
-                                    <th class="sorting" tabindex="0" aria-controls="dataTable" rowspan="1" colspan="1" aria-label="Position: activate to sort column ascending" style="width: 205.57px;">სტატუსი</th>
-                                    <th class="sorting" tabindex="0" aria-controls="dataTable" rowspan="1" colspan="1" aria-label="Office: activate to sort column ascending" style="width: 175.57px;">შექმნის დრო</th>
-                                    <th class="sorting" tabindex="0" aria-controls="dataTable" rowspan="1" colspan="1" aria-label="Office: activate to sort column ascending" style="width: 175.57px;">ქმედება</th>
+                                    <th class="sorting" tabindex="0" aria-controls="dataTable" rowspan="1" colspan="1"  style="width: 205.57px;">მომხმარებელი</th>
+                                    <th class="sorting" tabindex="0" aria-controls="dataTable" rowspan="1" colspan="1"  style="width: 205.57px;">სტანდარტის ტიპი</th>
+                                    <th class="sorting" tabindex="0" aria-controls="dataTable" rowspan="1" colspan="1"  style="width: 205.57px;">სტატუსი</th>
+                                    <th class="sorting" tabindex="0" aria-controls="dataTable" rowspan="1" colspan="1"  style="width: 175.57px;">შექმნის დრო</th>
+                                    <th class="sorting" tabindex="0" aria-controls="dataTable" rowspan="1" colspan="1"  style="width: 175.57px;">ქმედება</th>
 
                                 </tr>
                                 </thead>
@@ -31,9 +31,9 @@
 
 
                                 @foreach($applications as $application)
-                                    <tr class="odd">
-                                        <td class="sorting_1">{{$application['id']}}</td>
-                                        <td class="sorting_1">{{$application['fullName']}}</td>
+                                    <tr >
+                                        <td class="">{{$application['id']}}</td>
+                                        <td class="">{{$application['fullName']}}</td>
                                         <td class="align-middle">{{$application['standard']}}</td>
                                         @if($application['is_verified'])
                                             <td class="align-middle"><span class="badge bg-success">ვერიფიცირებული</span></td>
