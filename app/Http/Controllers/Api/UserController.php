@@ -14,6 +14,7 @@ class UserController extends Controller
 {
     /**
      * Get all verified users with pagination
+     * Only returns users who have products, ordered by creation date descending
      *
      * @param Request $request
      * @return \Illuminate\Http\JsonResponse
@@ -22,35 +23,41 @@ class UserController extends Controller
     {
         $perPage = $request->get('per_page', 9); // Default is 9 per page as requested
         
-        $query = User::query(); // Get all users without filtering by is_verified
+        // Start query, joining with products to filter only users who have products
+        $query = User::query()
+            ->join('products', 'users.id', '=', 'products.user_id')
+            ->where('products.is_active', true)
+            ->select('users.*')
+            ->distinct() // Ensure each user appears only once
+            ->orderBy('users.created_at', 'desc');
         
         // Filter by gender if provided
         if ($request->has('gender') && in_array($request->gender, ['male', 'female', 'other'])) {
-            $query->where('gender', $request->gender);
+            $query->where('users.gender', $request->gender);
         }
         
         // Filter by search term
         if ($request->has('search')) {
             $searchTerm = $request->search;
             $query->where(function($q) use ($searchTerm) {
-                $q->where('first_name', 'like', "%{$searchTerm}%")
-                  ->orWhere('last_name', 'like', "%{$searchTerm}%")
-                  ->orWhere('city', 'like', "%{$searchTerm}%");
+                $q->where('users.first_name', 'like', "%{$searchTerm}%")
+                  ->orWhere('users.last_name', 'like', "%{$searchTerm}%")
+                  ->orWhere('users.city', 'like', "%{$searchTerm}%");
             });
         }
         
         // Filter by city
         if ($request->has('city')) {
-            $query->where('city', $request->city);
+            $query->where('users.city', $request->city);
         }
         
         // Filter by age range
         if ($request->has('min_age')) {
-            $query->where('age', '>=', (int)$request->min_age);
+            $query->where('users.age', '>=', (int)$request->min_age);
         }
         
         if ($request->has('max_age')) {
-            $query->where('age', '<=', (int)$request->max_age);
+            $query->where('users.age', '<=', (int)$request->max_age);
         }
         
         $users = $query->paginate($perPage);
