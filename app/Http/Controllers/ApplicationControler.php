@@ -1,10 +1,7 @@
 <?php
-
 namespace App\Http\Controllers;
-
 use App\Models\User;
 use App\Models\UserStandard;
-use Illuminate\Http\Request;
 
 class ApplicationControler extends Controller
 {
@@ -32,4 +29,11 @@ class ApplicationControler extends Controller
 
         return view('pages.applications',['applications'=>$data]);
     }
+    public function show($id)
+    {
+       $application = UserStandard::where('id',$id)->first();
+
+       return view('pages.applicationDetail',['application'=>$application]);
+    }
 }
+

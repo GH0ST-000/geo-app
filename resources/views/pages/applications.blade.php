@@ -33,8 +33,8 @@
                                         <td class="align-middle">{{$application['created_at']}}</td>
 
                                         <td class="">
-                                    <span data-bs-toggle="modal" data-bs-target="#editableModal"
-                                          class="badge bg-info cursor-pointer" >ნახვა</span>
+                                    <a href="{{route('applications-detail', $application['id'])}}"
+                                          class="badge bg-info cursor-pointer" >ნახვა</a>
                                         </td>
                                     </tr>
                                 @endforeach

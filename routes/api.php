@@ -27,6 +27,7 @@ Route::group(['middleware' => 'auth:api'], function() {
     // Standards routes
     Route::post('/standards', [StandardController::class, 'store']);
     Route::get('/standards', [StandardController::class, 'index']);
+    Route::get('/standards/group/{groupId}', [StandardController::class, 'getGroup']);
     Route::get('/standards/{slug}', [StandardController::class, 'index']);
     Route::delete('/standards/{id}', [StandardController::class, 'destroy']);
     
