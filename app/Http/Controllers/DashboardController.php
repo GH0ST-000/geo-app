@@ -20,14 +20,6 @@ class DashboardController extends Controller
                 ->count()
 
         ];
-
-        // Extract to a constant or config value
-        $standardLabels = [
-            'honey_standard' => 'თაფლის მოდული',
-            'dairy_standard' => 'რძის მოდული',
-            'crop_standard' => 'მემცენარეობის მოდული',
-        ];
-
         $standard = [
             'honey_standard' => 'თაფლის მოდული',
             'dairy_standard' => 'რძის მოდული',
@@ -41,8 +33,8 @@ class DashboardController extends Controller
             'binary' => 'ბინარული ფაილები'
         ];
 
-        // Get all applications
-        $applications = UserStandard::all();
+        // Get all applications, ordered by newest first
+        $applications = UserStandard::orderBy('created_at', 'desc')->get();
 
         // Group applications by group_id
         $groupedApplications = [];
@@ -51,7 +43,7 @@ class DashboardController extends Controller
         $withGroupId = $applications->whereNotNull('group_id')->groupBy('group_id');
 
         foreach ($withGroupId as $groupId => $group) {
-            // Get the first application in the group
+            // Get the first application in the group (which is the latest one since we sorted by created_at desc)
             $firstApp = $group->first();
             $user = User::where('id', $firstApp->user_id)->first();
 
@@ -61,10 +53,11 @@ class DashboardController extends Controller
                     'fullName' => $user->first_name . ' ' . $user->last_name,
                     'standard' => $standard[$firstApp->slug] ?? $firstApp->slug,
                     'created_at' => $firstApp->created_at->diffForHumans(),
+                    'sort_date' => $firstApp->created_at->timestamp, // For accurate sorting
                     'is_group' => true,
                     'group_id' => $groupId,
                     'file_count' => $group->count(),
-                    'is_verified' => $firstApp->is_verified,
+                    'is_verified' => $firstApp->is_verified ?? false,
                     'files' => $group->pluck('file_name')->toArray()
                 ];
             }
@@ -82,20 +75,25 @@ class DashboardController extends Controller
                     'fullName' => $user->first_name . ' ' . $user->last_name,
                     'standard' => $standard[$application->slug] ?? $application->slug,
                     'created_at' => $application->created_at->diffForHumans(),
+                    'sort_date' => $application->created_at->timestamp, // For accurate sorting
                     'is_group' => false,
                     'file_count' => 1,
+                    'is_verified' => $application->is_verified ?? false,
                     'files' => [$application->file_name]
                 ];
             }
         }
 
-        // Sort by created_at (newest first)
+        // Sort by created_at timestamp (newest first)
         usort($groupedApplications, function($a, $b) {
-            return strtotime(str_replace(' ago', '', $b['created_at'])) <=> strtotime(str_replace(' ago', '', $a['created_at']));
+            return $b['sort_date'] - $a['sort_date'];
         });
 
+        // Limit to 5 most recent applications for the dashboard
+        $recentApplications = array_slice($groupedApplications, 0, 5);
+
         return view('pages.dashboard', array_merge($statisticsData, [
-            'applications' => $groupedApplications
+            'applications' => $recentApplications
         ]));
     }
 }
