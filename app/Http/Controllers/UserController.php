@@ -22,7 +22,7 @@ class UserController extends Controller
             return redirect()->back()->with(['message','მომხმარებელი ვერ მოიძებნა']);
         }
         $product = Product::where('user_id',$user->id)->count();
-        $application = UserStandard::where('user_id',$user->id)->count();
+        $application = UserStandard::where('user_id',$user->id)->distinct('group_id')->count();
         return view('pages.userDetail',
             [
                 'user'=>$user,
