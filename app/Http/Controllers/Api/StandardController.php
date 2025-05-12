@@ -431,15 +431,45 @@ class StandardController extends Controller
     }
 
     /**
-     * Delete a standard file
+     * Delete a standard file or group
      *
      * @param Request $request
-     * @param int $id Standard ID
+     * @param string $id Standard ID or group ID
      * @return \Illuminate\Http\JsonResponse
      */
     public function destroy(Request $request, $id)
     {
         $user = Auth::user();
+        
+        // First check if the ID is a valid UUID (likely a group_id)
+        if (preg_match('/^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i', $id)) {
+            // This is likely a group_id, so delete all files in the group
+            $groupFiles = UserStandard::where('group_id', $id)
+                                   ->where('user_id', $user->id)
+                                   ->get();
+            
+            if ($groupFiles->isEmpty()) {
+                return response()->json([
+                    'message' => 'Group not found or you do not have permission to delete it'
+                ], 404);
+            }
+            
+            $count = $groupFiles->count();
+            
+            foreach ($groupFiles as $file) {
+                if ($file->file_path) {
+                    Storage::delete($file->file_path);
+                }
+                $file->delete();
+            }
+            
+            return response()->json([
+                'message' => 'File group deleted successfully',
+                'count' => $count
+            ]);
+        }
+        
+        // If not a UUID, treat as a regular ID
         $standard = UserStandard::where('id', $id)
             ->where('user_id', $user->id)
             ->first();
