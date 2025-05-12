@@ -21,58 +21,61 @@ class ApplicationControler extends Controller
             'spreadsheets' => 'ელცხრილები',
             'binary' => 'ბინარული ფაილები'
         ];
-
-        // Get all applications
-        $applications = UserStandard::orderBy('id','desc')->get();
-
+        
+        // Get all applications, already ordered by ID descending (newest first)
+        $applications = UserStandard::orderBy('created_at', 'desc')->get();
+        
         // Group applications by group_id
         $groupedApplications = [];
-
+        
         // First, handle applications with group_id
         $withGroupId = $applications->whereNotNull('group_id')->groupBy('group_id');
-
+        
         foreach ($withGroupId as $groupId => $group) {
-            // Get the first application in the group
+            // Get the first application in the group (which is the latest one since we sorted by created_at desc)
             $firstApp = $group->first();
             $user = User::where('id', $firstApp->user_id)->first();
-
+            
             if ($user) {
                 $groupedApplications[] = [
                     'id' => $firstApp->id,
                     'fullName' => $user->first_name . ' ' . $user->last_name,
                     'standard' => $standard[$firstApp->slug] ?? $firstApp->slug,
                     'created_at' => $firstApp->created_at->diffForHumans(),
+                    'sort_date' => $firstApp->created_at->timestamp, // For accurate sorting
                     'is_group' => true,
                     'group_id' => $groupId,
-                    'file_count' => $group->count(),
                     'is_verified' => $firstApp->is_verified,
+                    'file_count' => $group->count(),
                     'files' => $group->pluck('file_name')->toArray()
                 ];
             }
         }
-
+        
         // Then, handle applications without group_id
         $withoutGroupId = $applications->whereNull('group_id');
-
+        
         foreach ($withoutGroupId as $application) {
             $user = User::where('id', $application->user_id)->first();
-
+            
             if ($user) {
                 $groupedApplications[] = [
                     'id' => $application->id,
                     'fullName' => $user->first_name . ' ' . $user->last_name,
                     'standard' => $standard[$application->slug] ?? $application->slug,
                     'created_at' => $application->created_at->diffForHumans(),
+                    'sort_date' => $application->created_at->timestamp, // For accurate sorting
                     'is_group' => false,
+                    'is_verified' => $application->is_verified ?? false,
                     'file_count' => 1,
                     'files' => [$application->file_name]
                 ];
             }
         }
-
-        // Sort by created_at (newest first)
+        
+        // Sort by created_at timestamp (newest first)
         usort($groupedApplications, function($a, $b) {
-            return strtotime(str_replace(' ago', '', $b['created_at'])) <=> strtotime(str_replace(' ago', '', $a['created_at']));
+            return $b['sort_date'] - $a['sort_date'];
         });
 
         return view('pages.applications', ['applications' => $groupedApplications]);

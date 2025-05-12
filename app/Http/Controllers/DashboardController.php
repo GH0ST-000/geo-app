@@ -13,7 +13,12 @@ class DashboardController extends Controller
         $statisticsData = [
             'user' => User::count(),
             'product' => Product::count(),
-            'application' => UserStandard::count()
+            'application' =>  UserStandard::select('group_id')
+                ->whereNotNull('group_id')
+                ->groupBy('group_id')
+                ->get()
+                ->count()
+
         ];
 
         // Extract to a constant or config value
