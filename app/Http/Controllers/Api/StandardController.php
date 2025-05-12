@@ -295,47 +295,72 @@ class StandardController extends Controller
             }
         }
         
-        // Group files by group_id when requested
-        $grouped = $request->has('grouped') && $request->input('grouped') == 'true';
+        // Check if we should return individual files or group them
+        // Default to grouped (one record per group_id) unless explicitly requested not to group
+        $grouped = !($request->has('grouped') && $request->input('grouped') == 'false');
         
         if ($grouped) {
-            // First get all distinct group_ids
-            $groupIds = $query->whereNotNull('group_id')
-                             ->select('group_id')
-                             ->distinct()
-                             ->pluck('group_id')
-                             ->toArray();
+            // Get all unique group_ids
+            $groupedStandards = collect();
             
-            // For each group, get the first file to represent the group
-            $standards = collect();
+            // First, handle records with group_id
+            $groupIds = UserStandard::where('user_id', $user->id)
+                       ->whereNotNull('group_id')
+                       ->select('group_id')
+                       ->distinct()
+                       ->pluck('group_id');
+            
             foreach ($groupIds as $groupId) {
-                $firstFile = UserStandard::where('group_id', $groupId)
-                                        ->where('user_id', $user->id)
-                                        ->first();
+                // Apply filters from the original query
+                $groupQuery = clone $query;
+                $groupQuery->where('group_id', $groupId);
                 
-                if ($firstFile) {
-                    // Add a count of related files
-                    $fileCount = UserStandard::where('group_id', $groupId)->count();
-                    $firstFile->file_count = $fileCount;
-                    $firstFile->is_group = true;
+                // Check if this group matches our filters
+                if ($groupQuery->exists()) {
+                    // Get the first file of the group
+                    $firstFile = UserStandard::where('group_id', $groupId)
+                                  ->where('user_id', $user->id)
+                                  ->latest()
+                                  ->first();
                     
-                    $standards->push($firstFile);
+                    if ($firstFile) {
+                        // Count related files that match the filters
+                        $fileCount = $groupQuery->count();
+                        $firstFile->file_count = $fileCount;
+                        $firstFile->is_group = true;
+                        
+                        // Get related file names and IDs
+                        $relatedFiles = UserStandard::where('group_id', $groupId)
+                                       ->where('user_id', $user->id)
+                                       ->select('id', 'file_name', 'file_category', 'created_at')
+                                       ->get();
+                        
+                        $firstFile->related_files = $relatedFiles;
+                        $groupedStandards->push($firstFile);
+                    }
                 }
             }
             
-            // Add single files (without group_id)
+            // Then, add files without group_id
             $singleFiles = $query->whereNull('group_id')->get();
             foreach ($singleFiles as $file) {
                 $file->file_count = 1;
                 $file->is_group = false;
-                $standards->push($file);
+                $file->related_files = collect([$file->only(['id', 'file_name', 'file_category', 'created_at'])]);
+                $groupedStandards->push($file);
             }
             
-            // Sort by created_at
-            $standards = $standards->sortByDesc('created_at')->values();
+            // Sort by latest created_at
+            $standards = $groupedStandards->sortByDesc('created_at')->values();
         } else {
             // Return all files individually (original behavior)
             $standards = $query->latest()->get();
+            
+            // Add is_group = false to all records
+            $standards->each(function($standard) {
+                $standard->is_group = false;
+                $standard->file_count = 1;
+            });
         }
 
         // Add file information to each standard
