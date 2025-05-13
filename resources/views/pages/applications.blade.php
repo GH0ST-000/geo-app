@@ -37,8 +37,12 @@
                                         <td class="align-middle">{{$application['standard']}}</td>
                                         @if($application['is_verified'])
                                             <td class="align-middle"><span class="badge bg-success">ვერიფიცირებული</span></td>
+                                        @elseif($application['reject_reason'] && $application['is_verified'] == false)
+                                            <td class="align-middle"><span class="badge bg-danger">უარყოფილი</span></td>
+
                                         @else
                                             <td class="align-middle"><span class="badge bg-warning">არა ვერიფიცირებული</span></td>
+
                                         @endif
 
                                         <td class="align-middle">{{$application['created_at']}}</td>

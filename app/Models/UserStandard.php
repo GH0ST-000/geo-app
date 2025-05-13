@@ -24,6 +24,7 @@ class UserStandard extends Model
         'file_path',
         'file_extension',
         'file_category',
+        'reject_reason',
         'is_verified'
     ];
 
