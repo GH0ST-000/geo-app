@@ -31,6 +31,7 @@ Route::prefix('admin')
             Route::get('/applications','index')->name('applications');
             Route::get('/applications/detail/{id}','show')->name('applications-detail');
             Route::post('/applications/active-user/','update')->name('applications-active');
+            Route::post('/applications/reject-user/','reject')->name('applications-reject');
         });
     });
 

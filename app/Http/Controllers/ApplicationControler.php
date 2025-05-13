@@ -21,21 +21,21 @@ class ApplicationControler extends Controller
             'spreadsheets' => 'ელცხრილები',
             'binary' => 'ბინარული ფაილები'
         ];
-        
+
         // Get all applications, already ordered by ID descending (newest first)
         $applications = UserStandard::orderBy('created_at', 'desc')->get();
-        
+
         // Group applications by group_id
         $groupedApplications = [];
-        
+
         // First, handle applications with group_id
         $withGroupId = $applications->whereNotNull('group_id')->groupBy('group_id');
-        
+
         foreach ($withGroupId as $groupId => $group) {
             // Get the first application in the group (which is the latest one since we sorted by created_at desc)
             $firstApp = $group->first();
             $user = User::where('id', $firstApp->user_id)->first();
-            
+
             if ($user) {
                 $groupedApplications[] = [
                     'id' => $firstApp->id,
@@ -46,18 +46,19 @@ class ApplicationControler extends Controller
                     'is_group' => true,
                     'group_id' => $groupId,
                     'is_verified' => $firstApp->is_verified,
+                    'reject_reason' => $firstApp->reject_reason,
                     'file_count' => $group->count(),
                     'files' => $group->pluck('file_name')->toArray()
                 ];
             }
         }
-        
+
         // Then, handle applications without group_id
         $withoutGroupId = $applications->whereNull('group_id');
-        
+
         foreach ($withoutGroupId as $application) {
             $user = User::where('id', $application->user_id)->first();
-            
+
             if ($user) {
                 $groupedApplications[] = [
                     'id' => $application->id,
@@ -67,12 +68,13 @@ class ApplicationControler extends Controller
                     'sort_date' => $application->created_at->timestamp, // For accurate sorting
                     'is_group' => false,
                     'is_verified' => $application->is_verified ?? false,
+                    'reject_reason' => $application->reject_reason,
                     'file_count' => 1,
                     'files' => [$application->file_name]
                 ];
             }
         }
-        
+
         // Sort by created_at timestamp (newest first)
         usort($groupedApplications, function($a, $b) {
             return $b['sort_date'] - $a['sort_date'];
@@ -157,9 +159,25 @@ class ApplicationControler extends Controller
 
     public function update(Request $request)
     {
-        User::where('id',$request->user_id)->update(['is_verified'=>true]);
+        $user = User::find($request->user_id);
+        $user->is_verified = 1;
+        $user->save();
+
         UserStandard::where('group_id',$request->app_id)->update(['is_verified'=>true]);
         return redirect(url('admin/applications'))->with('message','მოქმედება წარმეტებით შესრულდა');
+    }
+
+
+    public function reject(Request $request)
+    {
+
+        $user = User::find($request->userID);
+        $user->is_verified = 0;
+        $user->save();
+
+        UserStandard::where('group_id',$request->appID)->update(['is_verified'=>false,'reject_reason'=>$request->reason]);
+        return redirect(url('admin/applications'))->with('message','მოქმედება წარმეტებით შესრულდა');
+
     }
 }
 
