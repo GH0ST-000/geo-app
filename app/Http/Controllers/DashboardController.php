@@ -54,6 +54,7 @@ class DashboardController extends Controller
                     'standard' => $standard[$firstApp->slug] ?? $firstApp->slug,
                     'created_at' => $firstApp->created_at->diffForHumans(),
                     'sort_date' => $firstApp->created_at->timestamp, // For accurate sorting
+                    'reject_reason' => $firstApp->reject_reason,
                     'is_group' => true,
                     'group_id' => $groupId,
                     'file_count' => $group->count(),
@@ -75,6 +76,7 @@ class DashboardController extends Controller
                     'fullName' => $user->first_name . ' ' . $user->last_name,
                     'standard' => $standard[$application->slug] ?? $application->slug,
                     'created_at' => $application->created_at->diffForHumans(),
+                    'reject_reason' => $application->reject_reason,
                     'sort_date' => $application->created_at->timestamp, // For accurate sorting
                     'is_group' => false,
                     'file_count' => 1,
