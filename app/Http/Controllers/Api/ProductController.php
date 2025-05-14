@@ -20,11 +20,11 @@ class ProductController extends Controller
             ->with('media')
             ->orderBy('created_at', 'desc')
             ->get();
-            
+
         $products->each(function ($product) {
             $product->product_images = $product->getProductImagesAttribute();
         });
-        
+
         return response()->json($products, 200, [], JSON_UNESCAPED_UNICODE);
     }
 
@@ -63,7 +63,7 @@ class ProductController extends Controller
                 }
             }
         }
-        
+
         // Handle product images from product_file field if any
         if ($request->hasFile('product_file')) {
             foreach ($request->file('product_file') as $image) {
@@ -73,7 +73,7 @@ class ProductController extends Controller
                 }
             }
         }
-        
+
         // Load images URLs
         $product->product_images = $product->getProductImagesAttribute();
 
@@ -89,27 +89,27 @@ class ProductController extends Controller
     public function show(string $id)
     {
         $product = Product::with('media')->findOrFail($id);
-        
+
         // Check if the current user owns this product
         if ($product->user_id != Auth::id()) {
             return response()->json([
                 'message' => 'You are not authorized to view this product'
             ], 403);
         }
-        
+
         // Load images URLs
         $product->product_images = $product->getProductImagesAttribute();
-        
+
         return response()->json($product, 200, [], JSON_UNESCAPED_UNICODE);
     }
 
     /**
      * Update the specified resource in storage.
-     * 
+     *
      * @param Request $request Request data
      * @param string $id Product ID
      * @return \Illuminate\Http\JsonResponse
-     * 
+     *
      * Using POST method to support form data with file uploads
      * Image handling:
      * - Files sent as 'product_images[]' or 'product_file[]' will ALWAYS be ADDED (not replaced)
@@ -120,14 +120,14 @@ class ProductController extends Controller
     public function update(Request $request, string $id)
     {
         $product = Product::findOrFail($id);
-        
+
         // Check if the current user owns this product
         if ($product->user_id != Auth::id()) {
             return response()->json([
                 'message' => 'You are not authorized to update this product'
             ], 403);
         }
-        
+
         $validator = Validator::make($request->all(), [
             'product_name' => 'sometimes|required|string|max:255',
             'product_description' => 'sometimes|required|string',
@@ -141,30 +141,30 @@ class ProductController extends Controller
         if ($validator->fails()) {
             return response()->json(['errors' => $validator->errors()], 422);
         }
-        
+
         // Update product fields
         if ($request->has('product_name')) {
             $product->product_name = $request->product_name;
         }
-        
+
         if ($request->has('product_description')) {
             $product->product_description = $request->product_description;
         }
-        
+
         if ($request->has('packing_capacity')) {
             $product->packing_capacity = $request->packing_capacity;
         }
-        
+
         if ($request->has('address')) {
             $product->address = $request->address;
         }
-        
+
         if ($request->has('is_active')) {
             $product->is_active = $request->is_active;
         }
-        
+
         $product->save();
-        
+
         // Handle product images if any
         if ($request->hasFile('product_images')) {
             foreach ($request->file('product_images') as $image) {
@@ -174,7 +174,7 @@ class ProductController extends Controller
                 }
             }
         }
-        
+
         // Handle product images from product_file field if any
         if ($request->hasFile('product_file')) {
             foreach ($request->file('product_file') as $image) {
@@ -184,7 +184,7 @@ class ProductController extends Controller
                 }
             }
         }
-        
+
         // Handle deleted images
         if ($request->has('delete_images') && is_array($request->delete_images)) {
             foreach ($request->delete_images as $mediaId) {
@@ -194,13 +194,13 @@ class ProductController extends Controller
                 }
             }
         }
-        
+
         // Load fresh media
         $product->load('media');
-        
+
         // Load images URLs
         $product->product_images = $product->getProductImagesAttribute();
-        
+
         return response()->json([
             'message' => 'Product updated successfully',
             'product' => $product
@@ -213,35 +213,35 @@ class ProductController extends Controller
     public function destroy(string $id)
     {
         $product = Product::findOrFail($id);
-        
+
         // Check if the current user owns this product
         if ($product->user_id != Auth::id()) {
             return response()->json([
                 'message' => 'You are not authorized to delete this product'
             ], 403);
         }
-        
+
         // Delete all associated media
         $product->clearMediaCollection('product_images');
-        
+
         // Delete the product
         $product->delete();
-        
+
         return response()->json([
             'message' => 'Product deleted successfully'
         ], 200);
     }
-    
+
     /**
      * Get all products (public endpoint)
      */
     public function getAllProducts(Request $request)
     {
         $perPage = $request->get('per_page', 10);
-        
+
         $query = Product::with('media')
             ->where('is_active', true);
-            
+
         // Filter by search term if provided
         if ($request->has('search')) {
             $searchTerm = $request->search;
@@ -251,10 +251,10 @@ class ProductController extends Controller
                   ->orWhere('address', 'like', "%{$searchTerm}%");
             });
         }
-        
+
         $products = $query->orderBy('created_at', 'desc')
             ->paginate($perPage);
-            
+
         // Transform products to include image URLs
         $products->getCollection()->transform(function ($product) {
             $product->product_images = $product->getProductImagesAttribute();
@@ -266,10 +266,10 @@ class ProductController extends Controller
             ];
             return $product;
         });
-        
+
         return response()->json($products, 200, [], JSON_UNESCAPED_UNICODE);
     }
-    
+
     /**
      * Get a specific product (public endpoint)
      */
@@ -278,10 +278,10 @@ class ProductController extends Controller
         $product = Product::with(['media', 'user'])
             ->where('is_active', true)
             ->findOrFail($id);
-            
+
         // Load images URLs
         $product->product_images = $product->getProductImagesAttribute();
-        
+
         // Transform user data
         $product->user = [
             'ulid' => $product->user->ulid,
@@ -289,7 +289,7 @@ class ProductController extends Controller
             'last_name' => $product->user->last_name,
             'profile_picture_url' => $product->user->profile_picture_url,
         ];
-        
+
         return response()->json($product, 200, [], JSON_UNESCAPED_UNICODE);
     }
 
@@ -299,29 +299,29 @@ class ProductController extends Controller
     public function deleteImage(Request $request, string $productId, string $imageId)
     {
         $product = Product::findOrFail($productId);
-        
+
         // Check if the current user owns this product
         if ($product->user_id != Auth::id()) {
             return response()->json([
                 'message' => 'You are not authorized to modify this product'
             ], 403);
         }
-        
+
         // Find and delete the image
         $media = $product->media()->find($imageId);
-        
+
         if (!$media) {
             return response()->json([
                 'message' => 'Image not found'
             ], 404);
         }
-        
+
         $media->delete();
-        
+
         // Reload the product with fresh images
         $product->load('media');
         $product->product_images = $product->getProductImagesAttribute();
-        
+
         return response()->json([
             'message' => 'Image deleted successfully',
             'product' => $product
@@ -330,51 +330,52 @@ class ProductController extends Controller
 
     /**
      * Get products for a specific user (public endpoint)
-     * 
+     *
      * @param string $ulid User's ULID
      * @return \Illuminate\Http\JsonResponse
      */
     public function getUserProducts(string $ulid, Request $request)
     {
         $perPage = $request->get('per_page', 10);
-        
+
         // Find the user by ULID first
         $user = User::where('ulid', $ulid)->first();
-        
+
         if (!$user) {
             return response()->json([
                 'message' => 'User not found'
             ], 404);
         }
-        
+
         $query = Product::with(['media', 'user'])
             ->where('user_id', $user->id) // Use the actual user ID from the found user
             ->where('is_active', true)
             ->orderBy('created_at', 'desc');
-        
+
         $products = $query->paginate($perPage);
-        
+
         // Transform products to include image URLs
         $transformedProducts = $products->getCollection()->map(function ($product) {
             $productArray = $product->toArray();
             $productArray['product_images'] = $product->getProductImagesAttribute();
-            
+
             // Include basic user info
             if ($product->user) {
                 $productArray['user'] = [
                     'ulid' => $product->user->ulid, // Use ULID instead of ID
                     'first_name' => $product->user->first_name,
                     'last_name' => $product->user->last_name,
+                    'qr_code' => $product->user->is_verified ? $product->user->qr_code : null,
                     'profile_picture_url' => $product->user->profile_picture_url,
                 ];
             }
-            
+
             // Remove the media collection to keep response clean
             unset($productArray['media']);
-            
+
             return $productArray;
         });
-        
+
         // Create a new paginator with transformed products
         $paginatedProducts = new \Illuminate\Pagination\LengthAwarePaginator(
             $transformedProducts,
@@ -386,7 +387,7 @@ class ProductController extends Controller
                 'query' => $request->query(),
             ]
         );
-        
+
         return response()->json($paginatedProducts, 200, [], JSON_UNESCAPED_UNICODE);
     }
 }
