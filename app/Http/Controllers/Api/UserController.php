@@ -135,9 +135,10 @@ class UserController extends Controller
             'profile_large_url' => $user->profile_large_url,
         ];
 
-        // Include QR code only if user is active
-        if ($user->is_active) {
+        if ($user->is_verified) {
             $userData['qr_code'] = $user->qr_code;
+        } else {
+            unset($userData['qr_code']);
         }
 
         return response()->json($userData, 200, [], JSON_UNESCAPED_UNICODE);
