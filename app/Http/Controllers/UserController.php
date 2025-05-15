@@ -31,4 +31,11 @@ class UserController extends Controller
             ]
         );
     }
+
+    public function delete(Request $request)
+    {
+       $user = User::where('id',$request->user_id)->first();
+       $user->delete();
+        return redirect()->back()->with('message','მოქმედება წარმატებით შესრულდა');
+    }
 }

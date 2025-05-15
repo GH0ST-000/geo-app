@@ -34,6 +34,11 @@
                                                 <div class="ms-2">
                                                     <a href="{{url('admin/user/detail/'.$user->id)}}" class="badge badge-sm bg-success cursor-pointer">ნახვა</a>
                                                 </div>
+                                                <div class="ms-2">
+                                                    <a data-bs-toggle="modal" data-bs-target="#confirmationModal" data-userid="{{$user->id}}"
+                                                        class="badge badge-sm bg-danger cursor-pointer">მომხმარებლის წაშლა</a>
+
+                                                </div>
                                             </div>
                                         </td>
                                     </tr>
@@ -46,4 +51,44 @@
             </div>
         </div>
     </div>
+
+    <div class="modal fade" id="confirmationModal" tabindex="-1" aria-labelledby="confirmationModalLabel" aria-hidden="true">
+        <div class="modal-dialog">
+            <form action="{{route('delete-users')}}" method="post">
+                @csrf
+                <div class="modal-content">
+                    <div class="modal-header">
+                        <h5 class="modal-title" id="confirmationModalLabel">მომხმარებლის წაშლა</h5>
+                        <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                    </div>
+                    <div class="modal-body">
+
+                        <div class="container">
+                            <input type="hidden" id="suappID" name="app_id" value="">
+                            <input type="hidden" id="suuserID" name="user_id" value="">
+                            <div class="row">
+                                <div class="d-flex justify-content-center">
+                                    <span class="align-items-center">ნამდვილად გსურთ განცხადების მომხმარებლის წაშლა ?</span>
+                                </div>
+                            </div>
+                        </div>
+
+                    </div>
+                    <div class="modal-footer">
+                        <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">დახურვა</button>
+                        <button id="confirmReset" type="submit" class="btn btn-success">მომხმარებლის წაშლა</button>
+                    </div>
+                </div>
+            </form>
+        </div>
+    </div>
+<script>
+    $(function () {
+        $('#confirmationModal').on('show.bs.modal', function (event) {
+            let button = $(event.relatedTarget);
+            let userId = button.data('userid');
+            $('#suuserID').val(userId);
+        });
+    });
+</script>
 @endsection

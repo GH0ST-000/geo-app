@@ -21,6 +21,7 @@ Route::prefix('admin')
         Route::get('/dashboard',[DashboardController::class,'index'])->name('admin.dashboard');
         Route::controller(UserController::class)->group(function (){
             Route::get('/users','index')->name('users');
+            Route::post('/users/','delete')->name('delete-users');
             Route::get('/user/detail/{id}','show')->name('users');
         });
         Route::controller(ProductController::class)->group(function (){
