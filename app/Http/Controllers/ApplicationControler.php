@@ -22,6 +22,8 @@ class ApplicationControler extends Controller
             'binary' => 'ბინარული ფაილები'
         ];
 
+
+
         // Get all applications, already ordered by ID descending (newest first)
         $applications = UserStandard::orderBy('created_at', 'desc')->get();
 
