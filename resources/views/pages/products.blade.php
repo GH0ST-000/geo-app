@@ -4,6 +4,11 @@
     <div class="mb-3">
         <span>პროდუქტი</span>
     </div>
+    @if(session()->has('message'))
+        <div class="alert alert-success" id="flash_message">
+            {{ session()->get('message') }}
+        </div>
+    @endif
     <div class="card">
         <div class="card-body">
             <div class="table-responsive">
@@ -39,7 +44,11 @@
                                         </td>
 
                                         <td class="">
-                                        <a href="{{url('admin/product/detail/'.$product->id)}}" class="badge bg-info cursor-pointer" >ნახვა</a></td>
+                                       <div class="d-flex justify-content-between">
+                                           <div> <a href="{{url('admin/product/detail/'.$product->id)}}" class="badge bg-info cursor-pointer" >ნახვა</a></div>
+                                           <div> <a href="{{url('admin/product/edit/'.$product->id)}}" class="badge bg-warning cursor-pointer" >რედაქტირება</a></div>
+                                       </div>
+                                        </td>
                                     </tr>
 
                                 @endforeach

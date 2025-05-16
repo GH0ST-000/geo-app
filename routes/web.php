@@ -24,10 +24,17 @@ Route::prefix('admin')
             Route::post('/users/','delete')->name('delete-users');
             Route::get('/user/detail/{id}','show')->name('users');
         });
+        
+        // Product management routes
         Route::controller(ProductController::class)->group(function (){
             Route::get('/products','index')->name('products');
             Route::get('/product/detail/{id}','show')->name('products-detail');
+            Route::get('/product/edit/{id}','edit')->name('products-edit');
+            Route::put('/product/update/{id}','update')->name('products.update');
+            Route::delete('/product/delete/{id}','destroy')->name('products.destroy');
+            Route::delete('/product/image/delete/{id}','deleteImage')->name('product.image.delete');
         });
+        
         Route::controller(ApplicationControler::class)->group(function (){
             Route::get('/applications','index')->name('applications');
             Route::get('/applications/detail/{id}','show')->name('applications-detail');

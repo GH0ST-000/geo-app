@@ -332,6 +332,7 @@ class ProductController extends Controller
      * Get products for a specific user (public endpoint)
      *
      * @param string $ulid User's ULID
+     * @param Request $request
      * @return \Illuminate\Http\JsonResponse
      */
     public function getUserProducts(string $ulid, Request $request)
@@ -347,8 +348,56 @@ class ProductController extends Controller
             ], 404);
         }
 
+        // Get the preferred language from Accept-Language header, default to 'ka'
+        $language = $request->header('Accept-Language', 'ka');
+
+        // If language is not 'ka' or 'en', default to 'ka'
+        if ($language !== 'ka' && $language !== 'en') {
+            $language = 'ka';
+        }
+
+        // Get user's standards from UserStandard table
+        $userStandards = $user->standards()
+            ->where('is_verified', true)
+            ->get(['group_id', 'slug']);
+
+        // Get unique standards by group_id
+        $uniqueStandards = collect();
+        $seenGroupIds = [];
+
+        foreach ($userStandards as $standard) {
+            if (!in_array($standard->group_id, $seenGroupIds)) {
+                $uniqueStandards->push($standard);
+                $seenGroupIds[] = $standard->group_id;
+            }
+        }
+
+        $standardSlugs = $uniqueStandards->pluck('slug')->toArray();
+
+        // Standard translations
+        $standardTranslations = [
+            'ka' => [
+                'honey_standard' => 'თაფლის სტანდარტი',
+                'dairy_standard' => 'რძის სტანდარტი',
+                'crop_standard' => 'მემცენარეობის სტანდარტი',
+            ],
+            'en' => [
+                'honey_standard' => 'Honey Standard',
+                'dairy_standard' => 'Dairy Standard',
+                'crop_standard' => 'Crop Standard',
+            ]
+        ];
+
+        // Translate slugs to names based on language
+        $standardNames = [];
+        foreach ($standardSlugs as $slug) {
+            if (isset($standardTranslations[$language][$slug])) {
+                $standardNames[] = $standardTranslations[$language][$slug];
+            }
+        }
+
         $query = Product::with(['media', 'user'])
-            ->where('user_id', $user->id) // Use the actual user ID from the found user
+            ->where('user_id', $user->id)
             ->where('is_active', true)
             ->orderBy('created_at', 'desc');
 
@@ -362,7 +411,7 @@ class ProductController extends Controller
             // Include basic user info
             if ($product->user) {
                 $productArray['user'] = [
-                    'ulid' => $product->user->ulid, // Use ULID instead of ID
+                    'ulid' => $product->user->ulid,
                     'first_name' => $product->user->first_name,
                     'last_name' => $product->user->last_name,
                     'qr_code' => $product->user->is_verified ? $product->user->qr_code : null,
@@ -388,6 +437,10 @@ class ProductController extends Controller
             ]
         );
 
-        return response()->json($paginatedProducts, 200, [], JSON_UNESCAPED_UNICODE);
+        // Add standards to the response
+        $responseData = $paginatedProducts->toArray();
+        $responseData['standards'] = $standardNames;
+
+        return response()->json($responseData, 200, [], JSON_UNESCAPED_UNICODE);
     }
 }
