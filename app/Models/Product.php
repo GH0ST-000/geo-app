@@ -25,6 +25,8 @@ class Product extends Model implements HasMedia
         'packing_capacity',
         'address',
         'is_active',
+        'standard',
+        'standard_group_id',
     ];
 
     /**
@@ -35,6 +37,25 @@ class Product extends Model implements HasMedia
     protected $casts = [
         'is_active' => 'boolean',
     ];
+    
+    /**
+     * The "booted" method of the model.
+     * This ensures all associated files are properly deleted
+     * when a product is deleted.
+     *
+     * @return void
+     */
+    protected static function boot()
+    {
+        parent::boot();
+        
+        // When a product is about to be deleted
+        static::deleting(function ($product) {
+            // Clear all media collections
+            $product->clearMediaCollection('product_images');
+            $product->clearMediaCollection('standard_files');
+        });
+    }
 
     /**
      * Get the user that owns the product.
@@ -62,6 +83,8 @@ class Product extends Model implements HasMedia
                     ->height(400)
                     ->queued();
             });
+
+        $this->addMediaCollection('standard_files');
     }
 
     /**
@@ -84,6 +107,30 @@ class Product extends Model implements HasMedia
                 'medium' => $image->hasGeneratedConversion('medium') 
                     ? $image->getUrl('medium') 
                     : $image->getUrl(),
+            ];
+        }
+        
+        return $urls;
+    }
+
+    /**
+     * Get standard files URLs
+     *
+     * @return array
+     */
+    public function getStandardFilesAttribute()
+    {
+        $files = $this->getMedia('standard_files');
+        $urls = [];
+        
+        foreach ($files as $file) {
+            $urls[] = [
+                'id' => $file->id,
+                'name' => $file->name,
+                'file_name' => $file->file_name,
+                'mime_type' => $file->mime_type,
+                'size' => $file->size,
+                'url' => $file->getUrl(),
             ];
         }
         

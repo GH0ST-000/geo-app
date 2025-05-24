@@ -7,10 +7,101 @@ use App\Models\Product;
 use App\Models\User;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
+use Illuminate\Support\Facades\Storage;
 use Illuminate\Support\Facades\Validator;
+use Illuminate\Support\Str;
+use Illuminate\Support\Facades\DB;
 
 class ProductController extends Controller
 {
+    /**
+     * Valid standard types
+     */
+    protected $validStandardTypes = [
+        'honey_standard',
+        'dairy_standard',
+        'crop_standard',
+        'other_standard',
+        'images',
+        'documents',
+        'videos',
+        'audio',
+        'spreadsheets',
+        'binary'
+    ];
+
+    /**
+     * File type mappings for better categorization
+     */
+    protected $fileTypeMap = [
+        // Documents
+        'txt' => 'document',
+        'doc' => 'document',
+        'docx' => 'document',
+        'pdf' => 'document',
+        'odt' => 'document',
+        'rtf' => 'document',
+        'tex' => 'document',
+        'wps' => 'document',
+        
+        // Spreadsheets
+        'xls' => 'spreadsheet',
+        'xlsx' => 'spreadsheet',
+        'ods' => 'spreadsheet',
+        'csv' => 'spreadsheet',
+        'tsv' => 'spreadsheet',
+        
+        // Videos
+        'mp4' => 'video',
+        'avi' => 'video',
+        'mkv' => 'video',
+        'mov' => 'video',
+        'wmv' => 'video',
+        'flv' => 'video',
+        'webm' => 'video',
+        
+        // Audio
+        'mp3' => 'audio',
+        'wav' => 'audio',
+        'aac' => 'audio',
+        'flac' => 'audio',
+        'ogg' => 'audio',
+        'm4a' => 'audio',
+        
+        // Images
+        'jpg' => 'image',
+        'jpeg' => 'image',
+        'png' => 'image',
+        'gif' => 'image',
+        'bmp' => 'image',
+        'svg' => 'image',
+        'webp' => 'image',
+        'tiff' => 'image',
+        'tif' => 'image',
+        'heic' => 'image',
+        'heif' => 'image',
+        
+        // Other
+        'json' => 'data',
+        'xml' => 'data',
+        'zip' => 'archive',
+        'rar' => 'archive',
+        
+        // Binary and executable formats
+        'bin' => 'binary',
+        'exe' => 'binary',
+        'dll' => 'binary',
+        'so' => 'binary',
+        'dylib' => 'binary',
+        'class' => 'binary',
+        'jar' => 'binary',
+        'dat' => 'binary',
+        'iso' => 'binary',
+        'img' => 'binary',
+        'apk' => 'binary',
+        'dmg' => 'binary'
+    ];
+
     /**
      * Display a listing of the resource.
      */
@@ -23,6 +114,7 @@ class ProductController extends Controller
 
         $products->each(function ($product) {
             $product->product_images = $product->getProductImagesAttribute();
+            $product->standard_files = $product->getStandardFilesAttribute();
         });
 
         return response()->json($products, 200, [], JSON_UNESCAPED_UNICODE);
@@ -38,8 +130,10 @@ class ProductController extends Controller
             'product_description' => 'required|string',
             'packing_capacity' => 'required|string|max:255',
             'address' => 'required|string|max:255',
-            'product_images.*' => 'sometimes|image|mimes:jpeg,png,jpg,gif|max:10240',
-            'product_file.*' => 'sometimes|image|mimes:jpeg,png,jpg,gif|max:10240',
+            'product_images.*' => 'sometimes|image|mimes:jpeg,png,jpg,gif|max:20480',
+            'product_file.*' => 'sometimes|image|mimes:jpeg,png,jpg,gif|max:20480',
+            'standard' => 'sometimes|required|string|in:' . implode(',', $this->validStandardTypes),
+            'standard_files.*' => 'sometimes|file|max:20480',
         ]);
 
         if ($validator->fails()) {
@@ -52,6 +146,15 @@ class ProductController extends Controller
         $product->product_description = $request->product_description;
         $product->packing_capacity = $request->packing_capacity;
         $product->address = $request->address;
+        
+        // Handle standard data if provided
+        if ($request->has('standard')) {
+            $product->standard = $request->standard;
+            
+            // Generate a group ID for standard files
+            $product->standard_group_id = (string) Str::uuid();
+        }
+        
         $product->save();
 
         // Handle product images from product_images field if any
@@ -73,9 +176,30 @@ class ProductController extends Controller
                 }
             }
         }
+        
+        // Handle standard files if any
+        if ($request->hasFile('standard_files')) {
+            foreach ($request->file('standard_files') as $file) {
+                if ($file->isValid()) {
+                    // Get file details for custom properties
+                    $extension = strtolower($file->getClientOriginalExtension());
+                    $fileType = $file->getClientMimeType() ?: 'application/octet-stream';
+                    $fileCategory = $this->fileTypeMap[$extension] ?? 'binary';
+                    
+                    $product->addMedia($file)
+                        ->withCustomProperties([
+                            'file_category' => $fileCategory,
+                            'original_extension' => $extension,
+                            'mime_type' => $fileType
+                        ])
+                        ->toMediaCollection('standard_files');
+                }
+            }
+        }
 
         // Load images URLs
         $product->product_images = $product->getProductImagesAttribute();
+        $product->standard_files = $product->getStandardFilesAttribute();
 
         return response()->json([
             'message' => 'Product created successfully',
@@ -99,6 +223,7 @@ class ProductController extends Controller
 
         // Load images URLs
         $product->product_images = $product->getProductImagesAttribute();
+        $product->standard_files = $product->getStandardFilesAttribute();
 
         return response()->json($product, 200, [], JSON_UNESCAPED_UNICODE);
     }
@@ -133,9 +258,11 @@ class ProductController extends Controller
             'product_description' => 'sometimes|required|string',
             'packing_capacity' => 'sometimes|required|string|max:255',
             'address' => 'sometimes|required|string|max:255',
-            'product_images.*' => 'sometimes|image|mimes:jpeg,png,jpg,gif|max:10240',
-            'product_file.*' => 'sometimes|image|mimes:jpeg,png,jpg,gif|max:10240',
-            'is_active' => 'sometimes|boolean'
+            'product_images.*' => 'sometimes|image|mimes:jpeg,png,jpg,gif|max:20480',
+            'product_file.*' => 'sometimes|image|mimes:jpeg,png,jpg,gif|max:20480',
+            'is_active' => 'sometimes|boolean',
+            'standard' => 'sometimes|string|in:' . implode(',', $this->validStandardTypes),
+            'standard_files.*' => 'sometimes|file|max:20480',
         ]);
 
         if ($validator->fails()) {
@@ -162,6 +289,16 @@ class ProductController extends Controller
         if ($request->has('is_active')) {
             $product->is_active = $request->is_active;
         }
+        
+        // Update standard if provided
+        if ($request->has('standard')) {
+            $product->standard = $request->standard;
+            
+            // Generate a new group ID if none exists
+            if (!$product->standard_group_id) {
+                $product->standard_group_id = (string) Str::uuid();
+            }
+        }
 
         $product->save();
 
@@ -184,11 +321,41 @@ class ProductController extends Controller
                 }
             }
         }
+        
+        // Handle standard files if any
+        if ($request->hasFile('standard_files')) {
+            foreach ($request->file('standard_files') as $file) {
+                if ($file->isValid()) {
+                    // Get file details for custom properties
+                    $extension = strtolower($file->getClientOriginalExtension());
+                    $fileType = $file->getClientMimeType() ?: 'application/octet-stream';
+                    $fileCategory = $this->fileTypeMap[$extension] ?? 'binary';
+                    
+                    $product->addMedia($file)
+                        ->withCustomProperties([
+                            'file_category' => $fileCategory,
+                            'original_extension' => $extension,
+                            'mime_type' => $fileType
+                        ])
+                        ->toMediaCollection('standard_files');
+                }
+            }
+        }
 
         // Handle deleted images
         if ($request->has('delete_images') && is_array($request->delete_images)) {
             foreach ($request->delete_images as $mediaId) {
-                $media = $product->media()->find($mediaId);
+                $media = $product->media()->where('collection_name', 'product_images')->find($mediaId);
+                if ($media) {
+                    $media->delete();
+                }
+            }
+        }
+        
+        // Handle deleted standard files
+        if ($request->has('delete_standard_files') && is_array($request->delete_standard_files)) {
+            foreach ($request->delete_standard_files as $mediaId) {
+                $media = $product->media()->where('collection_name', 'standard_files')->find($mediaId);
                 if ($media) {
                     $media->delete();
                 }
@@ -200,6 +367,7 @@ class ProductController extends Controller
 
         // Load images URLs
         $product->product_images = $product->getProductImagesAttribute();
+        $product->standard_files = $product->getStandardFilesAttribute();
 
         return response()->json([
             'message' => 'Product updated successfully',
@@ -221,15 +389,32 @@ class ProductController extends Controller
             ], 403);
         }
 
-        // Delete all associated media
-        $product->clearMediaCollection('product_images');
-
-        // Delete the product
-        $product->delete();
-
-        return response()->json([
-            'message' => 'Product deleted successfully'
-        ], 200);
+        try {
+            // Begin a database transaction
+            DB::beginTransaction();
+            
+            // Delete all associated media files
+            $product->clearMediaCollection('product_images');
+            $product->clearMediaCollection('standard_files');
+            
+            // Delete the product
+            $product->delete();
+            
+            // Commit the transaction
+            DB::commit();
+            
+            return response()->json([
+                'message' => 'Product deleted successfully'
+            ], 200);
+        } catch (\Exception $e) {
+            // Rollback the transaction in case of error
+            DB::rollBack();
+            
+            return response()->json([
+                'message' => 'Failed to delete product',
+                'error' => $e->getMessage()
+            ], 500);
+        }
     }
 
     /**
@@ -251,6 +436,11 @@ class ProductController extends Controller
                   ->orWhere('address', 'like', "%{$searchTerm}%");
             });
         }
+        
+        // Filter by standard if provided
+        if ($request->has('standard') && in_array($request->standard, $this->validStandardTypes)) {
+            $query->where('standard', $request->standard);
+        }
 
         $products = $query->orderBy('created_at', 'desc')
             ->paginate($perPage);
@@ -258,6 +448,7 @@ class ProductController extends Controller
         // Transform products to include image URLs
         $products->getCollection()->transform(function ($product) {
             $product->product_images = $product->getProductImagesAttribute();
+            $product->standard_files = $product->getStandardFilesAttribute();
             $product->user = [
                 'ulid' => $product->user->ulid,
                 'first_name' => $product->user->first_name,
@@ -281,6 +472,7 @@ class ProductController extends Controller
 
         // Load images URLs
         $product->product_images = $product->getProductImagesAttribute();
+        $product->standard_files = $product->getStandardFilesAttribute();
 
         // Transform user data
         $product->user = [
@@ -308,7 +500,7 @@ class ProductController extends Controller
         }
 
         // Find and delete the image
-        $media = $product->media()->find($imageId);
+        $media = $product->media()->where('collection_name', 'product_images')->find($imageId);
 
         if (!$media) {
             return response()->json([
@@ -321,9 +513,46 @@ class ProductController extends Controller
         // Reload the product with fresh images
         $product->load('media');
         $product->product_images = $product->getProductImagesAttribute();
+        $product->standard_files = $product->getStandardFilesAttribute();
 
         return response()->json([
             'message' => 'Image deleted successfully',
+            'product' => $product
+        ], 200, [], JSON_UNESCAPED_UNICODE);
+    }
+    
+    /**
+     * Delete a single standard file
+     */
+    public function deleteStandardFile(Request $request, string $productId, string $fileId)
+    {
+        $product = Product::findOrFail($productId);
+
+        // Check if the current user owns this product
+        if ($product->user_id != Auth::id()) {
+            return response()->json([
+                'message' => 'You are not authorized to modify this product'
+            ], 403);
+        }
+
+        // Find and delete the file
+        $media = $product->media()->where('collection_name', 'standard_files')->find($fileId);
+
+        if (!$media) {
+            return response()->json([
+                'message' => 'File not found'
+            ], 404);
+        }
+
+        $media->delete();
+
+        // Reload the product with fresh files
+        $product->load('media');
+        $product->product_images = $product->getProductImagesAttribute();
+        $product->standard_files = $product->getStandardFilesAttribute();
+
+        return response()->json([
+            'message' => 'File deleted successfully',
             'product' => $product
         ], 200, [], JSON_UNESCAPED_UNICODE);
     }
@@ -380,11 +609,25 @@ class ProductController extends Controller
                 'honey_standard' => 'თაფლის სტანდარტი',
                 'dairy_standard' => 'რძის სტანდარტი',
                 'crop_standard' => 'მემცენარეობის სტანდარტი',
+                'other_standard' => 'სხვა სტანდარტი',
+                'images' => 'სურათები',
+                'documents' => 'დოკუმენტები',
+                'videos' => 'ვიდეოები',
+                'audio' => 'აუდიო',
+                'spreadsheets' => 'ცხრილები',
+                'binary' => 'ბინარული ფაილები'
             ],
             'en' => [
                 'honey_standard' => 'Honey Standard',
                 'dairy_standard' => 'Dairy Standard',
                 'crop_standard' => 'Crop Standard',
+                'other_standard' => 'Other Standard',
+                'images' => 'Images',
+                'documents' => 'Documents',
+                'videos' => 'Videos',
+                'audio' => 'Audio',
+                'spreadsheets' => 'Spreadsheets',
+                'binary' => 'Binary Files'
             ]
         ];
 
@@ -398,8 +641,14 @@ class ProductController extends Controller
 
         $query = Product::with(['media', 'user'])
             ->where('user_id', $user->id)
-            ->where('is_active', true)
-            ->orderBy('created_at', 'desc');
+            ->where('is_active', true);
+            
+        // Filter by standard if provided
+        if ($request->has('standard') && in_array($request->standard, $this->validStandardTypes)) {
+            $query->where('standard', $request->standard);
+        }
+            
+        $query->orderBy('created_at', 'desc');
 
         $products = $query->paginate($perPage);
 
@@ -407,6 +656,7 @@ class ProductController extends Controller
         $transformedProducts = $products->getCollection()->map(function ($product) {
             $productArray = $product->toArray();
             $productArray['product_images'] = $product->getProductImagesAttribute();
+            $productArray['standard_files'] = $product->getStandardFilesAttribute();
 
             // Include basic user info
             if ($product->user) {
