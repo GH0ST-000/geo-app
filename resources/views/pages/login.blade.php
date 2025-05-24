@@ -11,32 +11,30 @@ License: You must have a valid license to legally use the template for your proj
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <meta http-equiv="X-UA-Compatible" content="ie=edge">
-    <meta name="description" content="Responsive Laravel Admin Dashboard Template based on Bootstrap 5">
-    <meta name="author" content="Geogap">
-    <meta name="keywords" content="Geogap admin panel">
-
-    <title>Geogap Admin Pannel</title>
-
-    <!-- Fonts -->
+    <meta name="description" content="Responsive HTML Admin Dashboard Template based on Bootstrap 5">
+    <title>GeoGap Admin Panel</title>
+    <script src="https://cdn.ckeditor.com/ckeditor5/40.2.0/classic/ckeditor.js"></script>
+    <link rel="stylesheet" href="https://cdn.ckeditor.com/ckeditor5/43.0.1/classic/ckedit.css">
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script> <!-- Chart.js CDN -->
+    <link href="https://cdn.jsdelivr.net/npm/lightbox2@2/dist/css/lightbox.min.css" rel="stylesheet">
+    <script src="https://code.jquery.com/jquery-1.11.0.min.js"></script>
+    <link rel="stylesheet" href="{{asset('assets/vendors/flatpickr/flatpickr.min.css')}}">
+    <link rel="stylesheet" href="{{asset('assets/vendors/flatpickr/flatpickr.min.css')}}">
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Roboto:wght@300;400;500;700;900&display=swap" rel="stylesheet">
-    <!-- End fonts -->
-
-    <!-- CSRF Token -->
-    <meta name="_token" content="LeATUB9PdL9j9AQi2gmB7xEQsyTSQCDjzyZpsdiq">
-
-    <link rel="shortcut icon" href="https://geogapp.site/assets/Logo-DSp0wGmi.svg">
-
-    <!-- plugin css -->
-    <link href="https://nobleui.com/laravel/template/demo3/assets/fonts/feather-font/css/iconfont.css" rel="stylesheet" />
-    <link href="https://nobleui.com/laravel/template/demo3/assets/plugins/perfect-scrollbar/perfect-scrollbar.css" rel="stylesheet" />
-    <!-- end plugin css -->
-
-
-    <!-- common css -->
-    <link href="https://nobleui.com/laravel/template/demo3/css/app.css" rel="stylesheet" />
-    <!-- end common css -->
+    <link href="https://cdn.datatables.net/1.12.1/css/dataTables.bootstrap5.min.css" rel="stylesheet">
+    <meta name="csrf-token" content="{{ csrf_token() }}">
+    <link rel="stylesheet" href="{{asset('assets/vendors/core/core.css')}}">
+    <link rel="stylesheet" href="{{asset('assets/vendors/flatpickr/flatpickr.min.css')}}">
+    <link rel="stylesheet" href="{{asset('assets/fonts/feather-font/css/iconfont.css')}}">
+    <link rel="stylesheet" href="{{asset('assets/vendors/flag-icon-css/css/flag-icon.min.css')}}">
+    <link rel="stylesheet" href="{{asset('assets/css/demo3/style.css')}}">
+    <link href="https://cdn.jsdelivr.net/npm/select2@4.1.0-rc.0/dist/css/select2.min.css" rel="stylesheet" />
+    <script src="https://cdn.jsdelivr.net/npm/select2@4.1.0-rc.0/dist/js/select2.min.js"></script>
+    <script src="https://ajax.googleapis.com/ajax/libs/jqueryui/1.10.3/jquery-ui.min.js"></script>
+    <link rel="shortcut icon" href="https://geogapp.site/assets/Logo-DSp0wGmi.svg" />
+    <link rel="stylesheet" href="{{asset('assets/vendors/mdi/css/materialdesignicons.min.css')}}">
 
 </head>
 <body data-base-url="https://nobleui.com/laravel/template/demo3">
