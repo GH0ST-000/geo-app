@@ -38,6 +38,7 @@ Route::group(['middleware' => 'auth:api'], function() {
     Route::post('products/{product}', [ProductController::class, 'update']);
     Route::delete('products/{product}', [ProductController::class, 'destroy']);
     Route::delete('products/{productId}/images/{imageId}', [ProductController::class, 'deleteImage']);
+    Route::delete('products/{productId}/files/{fileId}', [ProductController::class, 'deleteStandardFile']);
 });
 
 // Public Municipality routes
