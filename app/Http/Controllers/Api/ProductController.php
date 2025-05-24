@@ -693,4 +693,127 @@ class ProductController extends Controller
 
         return response()->json($responseData, 200, [], JSON_UNESCAPED_UNICODE);
     }
+
+    /**
+     * Upload standard files to an existing product
+     *
+     * @param Request $request
+     * @param string $id Product ID
+     * @return \Illuminate\Http\JsonResponse
+     */
+    public function uploadStandardFiles(Request $request, string $id)
+    {
+        $product = Product::findOrFail($id);
+
+        // Check if the current user owns this product
+        if ($product->user_id != Auth::id()) {
+            return response()->json([
+                'message' => 'You are not authorized to modify this product'
+            ], 403);
+        }
+
+        $validator = Validator::make($request->all(), [
+            'standard' => 'sometimes|required|string|in:' . implode(',', $this->validStandardTypes),
+            'standard_files' => 'required|array',
+            'standard_files.*' => 'required|file|max:20480',
+        ]);
+
+        if ($validator->fails()) {
+            return response()->json(['errors' => $validator->errors()], 422);
+        }
+
+        // Debug information
+        $requestInfo = [
+            'method' => $request->method(),
+            'content_type' => $request->header('Content-Type'),
+            'has_file' => $request->hasFile('standard_files'),
+            'all_fields' => array_keys($request->all()),
+        ];
+
+        // Update standard type if provided
+        if ($request->has('standard')) {
+            $product->standard = $request->standard;
+            
+            // Generate a new group ID if none exists
+            if (!$product->standard_group_id) {
+                $product->standard_group_id = (string) Str::uuid();
+            }
+            
+            $product->save();
+        } elseif (!$product->standard) {
+            // If no standard is set and none is provided, use a default
+            $product->standard = 'documents';
+            
+            // Generate a new group ID if none exists
+            if (!$product->standard_group_id) {
+                $product->standard_group_id = (string) Str::uuid();
+            }
+            
+            $product->save();
+        }
+
+        // Process each uploaded file
+        $uploadedFiles = [];
+        $failedFiles = [];
+        
+        if ($request->hasFile('standard_files')) {
+            foreach ($request->file('standard_files') as $file) {
+                if ($file->isValid()) {
+                    try {
+                        // Get file details for custom properties
+                        $extension = strtolower($file->getClientOriginalExtension());
+                        $fileType = $file->getClientMimeType() ?: 'application/octet-stream';
+                        $fileCategory = $this->fileTypeMap[$extension] ?? 'binary';
+                        $originalName = $file->getClientOriginalName();
+                        
+                        $media = $product->addMedia($file)
+                            ->withCustomProperties([
+                                'file_category' => $fileCategory,
+                                'original_extension' => $extension,
+                                'mime_type' => $fileType,
+                                'original_name' => $originalName
+                            ])
+                            ->toMediaCollection('standard_files');
+                            
+                        $uploadedFiles[] = [
+                            'id' => $media->id,
+                            'name' => $media->name,
+                            'file_name' => $media->file_name,
+                            'mime_type' => $media->mime_type,
+                            'size' => $media->size,
+                            'url' => $media->getUrl(),
+                            'file_category' => $fileCategory
+                        ];
+                    } catch (\Exception $e) {
+                        $failedFiles[] = [
+                            'name' => $file->getClientOriginalName(),
+                            'error' => $e->getMessage()
+                        ];
+                    }
+                } else {
+                    $failedFiles[] = [
+                        'name' => $file->getClientOriginalName(),
+                        'error' => 'Invalid file'
+                    ];
+                }
+            }
+        }
+
+        // Reload the product with fresh files
+        $product->load('media');
+        $product->product_images = $product->getProductImagesAttribute();
+        $product->standard_files = $product->getStandardFilesAttribute();
+
+        $response = [
+            'message' => count($uploadedFiles) . ' files uploaded successfully',
+            'product' => $product,
+            'uploaded_files' => $uploadedFiles
+        ];
+        
+        if (!empty($failedFiles)) {
+            $response['failed_files'] = $failedFiles;
+        }
+
+        return response()->json($response, 200, [], JSON_UNESCAPED_UNICODE);
+    }
 }
