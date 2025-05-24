@@ -84,7 +84,21 @@ class Product extends Model implements HasMedia
                     ->queued();
             });
 
-        $this->addMediaCollection('standard_files');
+        $this->addMediaCollection('standard_files')
+            ->registerMediaConversions(function (Media $media) {
+                // Only create conversions for image files
+                if (strpos($media->mime_type, 'image/') === 0) {
+                    $this->addMediaConversion('thumb')
+                        ->width(150)
+                        ->height(150)
+                        ->queued();
+                    
+                    $this->addMediaConversion('medium')
+                        ->width(400)
+                        ->height(400)
+                        ->queued();
+                }
+            });
     }
 
     /**
@@ -131,6 +145,17 @@ class Product extends Model implements HasMedia
                 'mime_type' => $file->mime_type,
                 'size' => $file->size,
                 'url' => $file->getUrl(),
+                'file_category' => isset($file->custom_properties['file_category']) ? $file->custom_properties['file_category'] : 'binary',
+                'extension' => isset($file->custom_properties['original_extension']) ? $file->custom_properties['original_extension'] : pathinfo($file->file_name, PATHINFO_EXTENSION),
+                'is_image' => isset($file->custom_properties['file_category']) && $file->custom_properties['file_category'] === 'image',
+                'is_video' => isset($file->custom_properties['file_category']) && $file->custom_properties['file_category'] === 'video',
+                'is_audio' => isset($file->custom_properties['file_category']) && $file->custom_properties['file_category'] === 'audio',
+                'is_document' => isset($file->custom_properties['file_category']) && $file->custom_properties['file_category'] === 'document',
+                'is_spreadsheet' => isset($file->custom_properties['file_category']) && $file->custom_properties['file_category'] === 'spreadsheet',
+                'is_binary' => !isset($file->custom_properties['file_category']) || $file->custom_properties['file_category'] === 'binary',
+                'created_at' => $file->created_at->format('Y-m-d H:i:s'),
+                'thumb' => strpos($file->mime_type, 'image/') === 0 && $file->hasGeneratedConversion('thumb') ? $file->getUrl('thumb') : null,
+                'medium' => strpos($file->mime_type, 'image/') === 0 && $file->hasGeneratedConversion('medium') ? $file->getUrl('medium') : null,
             ];
         }
         
