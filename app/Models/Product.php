@@ -27,6 +27,8 @@ class Product extends Model implements HasMedia
         'is_active',
         'standard',
         'standard_group_id',
+        'is_verified',
+        'reject_reason',
     ];
 
     /**
@@ -36,6 +38,7 @@ class Product extends Model implements HasMedia
      */
     protected $casts = [
         'is_active' => 'boolean',
+        'is_verified' => 'boolean',
     ];
     
     /**
