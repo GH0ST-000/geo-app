@@ -46,7 +46,8 @@
                                         <td class="">
                                        <div class="d-flex justify-content-between">
                                            <div> <a href="{{url('admin/product/detail/'.$product->id)}}" class="badge bg-info cursor-pointer" >ნახვა</a></div>
-                                           <div> <a href="{{url('admin/product/edit/'.$product->id)}}" class="badge bg-warning cursor-pointer" >რედაქტირება</a></div>
+                                           <div> <a href="{{url('admin/product/edit/'.$product->id)}}" class="badge ms-2 bg-warning cursor-pointer" >რედაქტირება</a></div>
+                                           <div> <a data-bs-toggle="modal" data-bs-target="#confirmationModal"  class="badge ms-2 bg-success cursor-pointer" >განცხადების ფაილები</a></div>
                                        </div>
                                         </td>
                                     </tr>
@@ -59,6 +60,37 @@
                     </div>
                 </div>
             </div>
+        </div>
+    </div>
+
+
+    <div class="modal fade" id="confirmationModal" tabindex="-1" aria-labelledby="confirmationModalLabel" aria-hidden="true">
+        <div class="modal-dialog modal-lg">
+            <form action="{{route('applications-active')}}" method="post">
+                @csrf
+                <div class="modal-content">
+                    <div class="modal-header">
+                        <h5 class="modal-title" id="confirmationModalLabel">განცხადების ფაილები</h5>
+                        <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                    </div>
+                    <div class="modal-body">
+
+                        <div class="container">
+                            <input type="hidden" id="suappID" name="app_id" value="">
+                            <input type="hidden" id="suuserID" name="user_id" value="">
+                            <div class="row">
+
+                            </div>
+                        </div>
+
+                    </div>
+                    <div class="modal-footer">
+                        <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">დახურვა</button>
+                        <button type="button" class="btn btn-danger" data-bs-dismiss="modal">უარყოფა</button>
+                        <button id="confirmReset" type="submit" class="btn btn-success">დადასტურება</button>
+                    </div>
+                </div>
+            </form>
         </div>
     </div>
 
