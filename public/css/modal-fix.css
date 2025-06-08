@@ -1,0 +1,33 @@
+/**
+ * Modal Fix CSS
+ * 
+ * This file contains CSS fixes for Bootstrap modals to ensure they work correctly
+ * and don't leave artifacts like blur backgrounds after closing.
+ */
+
+/* Fix for modals - ensure backdrops are removed when modals are closed */
+body {
+    overflow-y: auto !important;
+}
+
+/* Override modal backdrop styles when not needed */
+body:not(.modal-open) .modal-backdrop {
+    display: none !important;
+    opacity: 0 !important;
+    z-index: -1 !important;
+}
+
+/* Ensure padding-right is removed after modal close */
+body:not(.modal-open) {
+    padding-right: 0 !important;
+}
+
+/* Add animation for modal backdrop removal */
+.modal-backdrop.fade {
+    transition: opacity 0.15s linear;
+}
+
+/* Ensure modal-open class doesn't persist */
+html.modal-open {
+    overflow: auto !important;
+} 
