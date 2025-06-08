@@ -55,5 +55,11 @@ Route::get('/public/products', [ProductController::class, 'getAllProducts']);
 Route::get('/public/products/{id}', [ProductController::class, 'getProduct']);
 Route::get('/public/users/{ulid}/products', [ProductController::class, 'getUserProducts']);
 
+// Admin routes - accessible within the application
+Route::get('/products/{id}', [ProductController::class, 'getProduct']);
+
+// Public files display route (doesn't require authentication)
+Route::get('/public/product-files/{id}', [ProductController::class, 'getProductFilesForDisplay']);
+
 // Password generation route
 Route::post('/generate-password', [PasswordController::class, 'generateAndSendPassword']);

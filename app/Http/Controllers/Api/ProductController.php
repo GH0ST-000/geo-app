@@ -816,4 +816,32 @@ class ProductController extends Controller
 
         return response()->json($response, 200, [], JSON_UNESCAPED_UNICODE);
     }
+
+    /**
+     * Get product files for display (public endpoint, no auth required)
+     *
+     * @param string $id Product ID
+     * @return \Illuminate\Http\JsonResponse
+     */
+    public function getProductFilesForDisplay(string $id)
+    {
+        try {
+            $product = Product::with('media')->findOrFail($id);
+            
+            // Create a simplified response with just the files data
+            $response = [
+                'id' => $product->id,
+                'product_name' => $product->product_name,
+                'product_images' => $product->getProductImagesAttribute(),
+                'standard_files' => $product->getStandardFilesAttribute(),
+            ];
+            
+            return response()->json($response, 200, [], JSON_UNESCAPED_UNICODE);
+        } catch (\Exception $e) {
+            return response()->json([
+                'message' => 'Product not found or error retrieving files',
+                'error' => $e->getMessage()
+            ], 404);
+        }
+    }
 }

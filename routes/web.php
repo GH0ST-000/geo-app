@@ -33,6 +33,8 @@ Route::prefix('admin')
             Route::put('/product/update/{id}','update')->name('products.update');
             Route::delete('/product/delete/{id}','destroy')->name('products.destroy');
             Route::delete('/product/image/delete/{id}','deleteImage')->name('product.image.delete');
+            Route::post('/product/reject','reject')->name('product.reject');
+            Route::post('/product/approve','approve')->name('product.approve');
         });
         
         Route::controller(ApplicationControler::class)->group(function (){
