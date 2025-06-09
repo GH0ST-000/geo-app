@@ -46,6 +46,13 @@ class UserController extends Controller
             });
         }
 
+        if ($request->has('is_verified')) {
+            $isVerified = (int) $request->is_verified;
+            if (in_array($isVerified, [0, 1])) {
+                $query->where('users.is_verified', $isVerified);
+            }
+        }
+
         // Filter by city
         if ($request->has('city')) {
             $query->where('users.city', $request->city);
