@@ -29,7 +29,7 @@ class UserController extends Controller
             ->where('products.is_active', true)
             ->select('users.*')
             ->distinct() // Ensure each user appears only once
-            ->orderBy('users.created_at', 'desc');
+            ->orderBy('products.is_verified', 'desc');
 
         // Filter by gender if provided
         if ($request->has('gender') && in_array($request->gender, ['male', 'female', 'other'])) {
