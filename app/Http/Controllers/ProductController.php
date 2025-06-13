@@ -97,7 +97,8 @@ class ProductController extends Controller
     public function destroy($id)
     {
         $product = Product::findOrFail($id);
-
+        $user = $product->user_id;
+        User::where('id',$user)->update(['is_verified'=>false]);
         // Delete all associated media
         $product->clearMediaCollection('product_images');
 

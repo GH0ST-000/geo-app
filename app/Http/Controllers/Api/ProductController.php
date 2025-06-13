@@ -43,14 +43,14 @@ class ProductController extends Controller
         'rtf' => 'document',
         'tex' => 'document',
         'wps' => 'document',
-        
+
         // Spreadsheets
         'xls' => 'spreadsheet',
         'xlsx' => 'spreadsheet',
         'ods' => 'spreadsheet',
         'csv' => 'spreadsheet',
         'tsv' => 'spreadsheet',
-        
+
         // Videos
         'mp4' => 'video',
         'avi' => 'video',
@@ -59,7 +59,7 @@ class ProductController extends Controller
         'wmv' => 'video',
         'flv' => 'video',
         'webm' => 'video',
-        
+
         // Audio
         'mp3' => 'audio',
         'wav' => 'audio',
@@ -67,7 +67,7 @@ class ProductController extends Controller
         'flac' => 'audio',
         'ogg' => 'audio',
         'm4a' => 'audio',
-        
+
         // Images
         'jpg' => 'image',
         'jpeg' => 'image',
@@ -80,13 +80,13 @@ class ProductController extends Controller
         'tif' => 'image',
         'heic' => 'image',
         'heif' => 'image',
-        
+
         // Other
         'json' => 'data',
         'xml' => 'data',
         'zip' => 'archive',
         'rar' => 'archive',
-        
+
         // Binary and executable formats
         'bin' => 'binary',
         'exe' => 'binary',
@@ -146,15 +146,15 @@ class ProductController extends Controller
         $product->product_description = $request->product_description;
         $product->packing_capacity = $request->packing_capacity;
         $product->address = $request->address;
-        
+
         // Handle standard data if provided
         if ($request->has('standard')) {
             $product->standard = $request->standard;
-            
+
             // Generate a group ID for standard files
             $product->standard_group_id = (string) Str::uuid();
         }
-        
+
         $product->save();
 
         // Handle product images from product_images field if any
@@ -176,7 +176,7 @@ class ProductController extends Controller
                 }
             }
         }
-        
+
         // Handle standard files if any
         if ($request->hasFile('standard_files')) {
             foreach ($request->file('standard_files') as $file) {
@@ -185,7 +185,7 @@ class ProductController extends Controller
                     $extension = strtolower($file->getClientOriginalExtension());
                     $fileType = $file->getClientMimeType() ?: 'application/octet-stream';
                     $fileCategory = $this->fileTypeMap[$extension] ?? 'binary';
-                    
+
                     $product->addMedia($file)
                         ->withCustomProperties([
                             'file_category' => $fileCategory,
@@ -289,11 +289,11 @@ class ProductController extends Controller
         if ($request->has('is_active')) {
             $product->is_active = $request->is_active;
         }
-        
+
         // Update standard if provided
         if ($request->has('standard')) {
             $product->standard = $request->standard;
-            
+
             // Generate a new group ID if none exists
             if (!$product->standard_group_id) {
                 $product->standard_group_id = (string) Str::uuid();
@@ -321,7 +321,7 @@ class ProductController extends Controller
                 }
             }
         }
-        
+
         // Handle standard files if any
         if ($request->hasFile('standard_files')) {
             foreach ($request->file('standard_files') as $file) {
@@ -330,7 +330,7 @@ class ProductController extends Controller
                     $extension = strtolower($file->getClientOriginalExtension());
                     $fileType = $file->getClientMimeType() ?: 'application/octet-stream';
                     $fileCategory = $this->fileTypeMap[$extension] ?? 'binary';
-                    
+
                     $product->addMedia($file)
                         ->withCustomProperties([
                             'file_category' => $fileCategory,
@@ -351,7 +351,7 @@ class ProductController extends Controller
                 }
             }
         }
-        
+
         // Handle deleted standard files
         if ($request->has('delete_standard_files') && is_array($request->delete_standard_files)) {
             foreach ($request->delete_standard_files as $mediaId) {
@@ -392,24 +392,25 @@ class ProductController extends Controller
         try {
             // Begin a database transaction
             DB::beginTransaction();
-            
+
             // Delete all associated media files
             $product->clearMediaCollection('product_images');
             $product->clearMediaCollection('standard_files');
-            
+            $user = $product->user_id;
+            User::where('id',$user)->update(['is_verified'=>false]);
             // Delete the product
             $product->delete();
-            
+
             // Commit the transaction
             DB::commit();
-            
+
             return response()->json([
                 'message' => 'Product deleted successfully'
             ], 200);
         } catch (\Exception $e) {
             // Rollback the transaction in case of error
             DB::rollBack();
-            
+
             return response()->json([
                 'message' => 'Failed to delete product',
                 'error' => $e->getMessage()
@@ -436,7 +437,7 @@ class ProductController extends Controller
                   ->orWhere('address', 'like', "%{$searchTerm}%");
             });
         }
-        
+
         // Filter by standard if provided
         if ($request->has('standard') && in_array($request->standard, $this->validStandardTypes)) {
             $query->where('standard', $request->standard);
@@ -520,7 +521,7 @@ class ProductController extends Controller
             'product' => $product
         ], 200, [], JSON_UNESCAPED_UNICODE);
     }
-    
+
     /**
      * Delete a single standard file
      */
@@ -642,12 +643,12 @@ class ProductController extends Controller
         $query = Product::with(['media', 'user'])
             ->where('user_id', $user->id)
             ->where('is_active', true);
-            
+
         // Filter by standard if provided
         if ($request->has('standard') && in_array($request->standard, $this->validStandardTypes)) {
             $query->where('standard', $request->standard);
         }
-            
+
         $query->orderBy('created_at', 'desc');
 
         $products = $query->paginate($perPage);
@@ -733,29 +734,29 @@ class ProductController extends Controller
         // Update standard type if provided
         if ($request->has('standard')) {
             $product->standard = $request->standard;
-            
+
             // Generate a new group ID if none exists
             if (!$product->standard_group_id) {
                 $product->standard_group_id = (string) Str::uuid();
             }
-            
+
             $product->save();
         } elseif (!$product->standard) {
             // If no standard is set and none is provided, use a default
             $product->standard = 'documents';
-            
+
             // Generate a new group ID if none exists
             if (!$product->standard_group_id) {
                 $product->standard_group_id = (string) Str::uuid();
             }
-            
+
             $product->save();
         }
 
         // Process each uploaded file
         $uploadedFiles = [];
         $failedFiles = [];
-        
+
         if ($request->hasFile('standard_files')) {
             foreach ($request->file('standard_files') as $file) {
                 if ($file->isValid()) {
@@ -765,7 +766,7 @@ class ProductController extends Controller
                         $fileType = $file->getClientMimeType() ?: 'application/octet-stream';
                         $fileCategory = $this->fileTypeMap[$extension] ?? 'binary';
                         $originalName = $file->getClientOriginalName();
-                        
+
                         $media = $product->addMedia($file)
                             ->withCustomProperties([
                                 'file_category' => $fileCategory,
@@ -774,7 +775,7 @@ class ProductController extends Controller
                                 'original_name' => $originalName
                             ])
                             ->toMediaCollection('standard_files');
-                            
+
                         $uploadedFiles[] = [
                             'id' => $media->id,
                             'name' => $media->name,
@@ -809,7 +810,7 @@ class ProductController extends Controller
             'product' => $product,
             'uploaded_files' => $uploadedFiles
         ];
-        
+
         if (!empty($failedFiles)) {
             $response['failed_files'] = $failedFiles;
         }
@@ -827,7 +828,7 @@ class ProductController extends Controller
     {
         try {
             $product = Product::with('media')->findOrFail($id);
-            
+
             // Create a simplified response with just the files data
             $response = [
                 'id' => $product->id,
@@ -835,7 +836,7 @@ class ProductController extends Controller
                 'product_images' => $product->getProductImagesAttribute(),
                 'standard_files' => $product->getStandardFilesAttribute(),
             ];
-            
+
             return response()->json($response, 200, [], JSON_UNESCAPED_UNICODE);
         } catch (\Exception $e) {
             return response()->json([
