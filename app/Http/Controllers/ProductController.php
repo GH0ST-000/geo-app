@@ -120,45 +120,35 @@ class ProductController extends Controller
 
         return redirect()->route('products-edit', $productId)->with('message', 'სურათი წარმატებით წაიშალა');
     }
-    
+
     /**
      * Reject a product with a reason
-     * 
+     *
      * @param Request $request
      * @return \Illuminate\Http\Response
      */
     public function reject(Request $request)
     {
-        // Debug log the request
-        \Log::info('Product reject request received', [
-            'request_data' => $request->all(),
-            'headers' => $request->headers->all(),
-            'method' => $request->method(),
-            'url' => $request->url(),
-            'is_ajax' => $request->ajax(),
-        ]);
-        
+
+
         try {
             // Validate the request
             $validated = $request->validate([
                 'product_id' => 'required|exists:products,id',
                 'reject_reason' => 'required|string|min:3',
             ]);
-            
+
             $product = Product::findOrFail($request->product_id);
-            
+            $user_id = $product->user_id;
+            User::where('id',$user_id)->update(['is_verified'=>false]);
             // Update product status
             $product->is_active = false;
             $product->is_verified = false;
             $product->reject_reason = $request->reject_reason;
             $product->save();
-            
-            \Log::info('Product rejected successfully', [
-                'product_id' => $product->id,
-                'product_name' => $product->product_name,
-                'reject_reason' => $product->reject_reason,
-            ]);
-            
+
+
+
             if ($request->ajax()) {
                 return response()->json([
                     'success' => true,
@@ -166,13 +156,11 @@ class ProductController extends Controller
                     'redirect' => route('products')
                 ]);
             }
-            
+
             return redirect()->route('products')->with('message', 'პროდუქტი უარყოფილია');
         } catch (\Illuminate\Validation\ValidationException $e) {
-            \Log::error('Validation error rejecting product', [
-                'errors' => $e->errors(),
-            ]);
-            
+
+
             if ($request->ajax()) {
                 return response()->json([
                     'success' => false,
@@ -180,61 +168,47 @@ class ProductController extends Controller
                     'errors' => $e->errors()
                 ], 422);
             }
-            
+
             return redirect()->back()->withErrors($e->errors())->withInput();
         } catch (\Exception $e) {
-            \Log::error('Error rejecting product', [
-                'error' => $e->getMessage(),
-                'trace' => $e->getTraceAsString(),
-            ]);
-            
+
+
             if ($request->ajax()) {
                 return response()->json([
                     'success' => false,
                     'message' => 'დაფიქსირდა შეცდომა: ' . $e->getMessage()
                 ], 500);
             }
-            
+
             return redirect()->back()->with('error', 'დაფიქსირდა შეცდომა: ' . $e->getMessage());
         }
     }
-    
+
     /**
      * Approve a product
-     * 
+     *
      * @param Request $request
      * @return \Illuminate\Http\Response
      */
     public function approve(Request $request)
     {
-        // Debug log the request
-        \Log::info('Product approve request received', [
-            'request_data' => $request->all(),
-            'headers' => $request->headers->all(),
-            'method' => $request->method(),
-            'url' => $request->url(),
-            'is_ajax' => $request->ajax(),
-        ]);
-        
+
         try {
             // Validate the request
             $validated = $request->validate([
                 'product_id' => 'required|exists:products,id',
             ]);
-            
+
             $product = Product::findOrFail($request->product_id);
-            
+            $user_id = $product->user_id;
+
+            User::where('id',$user_id)->update(['is_verified'=>true]);
             // Update product status
             $product->is_active = true;
             $product->is_verified = true;
             $product->reject_reason = null; // Clear any previous rejection reason
             $product->save();
-            
-            \Log::info('Product approved successfully', [
-                'product_id' => $product->id,
-                'product_name' => $product->product_name,
-            ]);
-            
+
             if ($request->ajax()) {
                 return response()->json([
                     'success' => true,
@@ -242,13 +216,9 @@ class ProductController extends Controller
                     'redirect' => route('products')
                 ]);
             }
-            
+
             return redirect()->route('products')->with('message', 'პროდუქტი დადასტურდა');
         } catch (\Illuminate\Validation\ValidationException $e) {
-            \Log::error('Validation error approving product', [
-                'errors' => $e->errors(),
-            ]);
-            
             if ($request->ajax()) {
                 return response()->json([
                     'success' => false,
@@ -256,21 +226,21 @@ class ProductController extends Controller
                     'errors' => $e->errors()
                 ], 422);
             }
-            
+
             return redirect()->back()->withErrors($e->errors())->withInput();
         } catch (\Exception $e) {
             \Log::error('Error approving product', [
                 'error' => $e->getMessage(),
                 'trace' => $e->getTraceAsString(),
             ]);
-            
+
             if ($request->ajax()) {
                 return response()->json([
                     'success' => false,
                     'message' => 'დაფიქსირდა შეცდომა: ' . $e->getMessage()
                 ], 500);
             }
-            
+
             return redirect()->back()->with('error', 'დაფიქსირდა შეცდომა: ' . $e->getMessage());
         }
     }

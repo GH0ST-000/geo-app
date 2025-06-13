@@ -45,9 +45,9 @@
     <div class="mt-3 mb-3 d-flex justify-content-between align-items-center">
         <span class="badge bg-success">პროდუქტის ფაილები</span>
         <div>
-            <button type="button" class="btn btn-primary btn-sm" onclick="showProductFiles({{ $product->id }}, 'product_images'); return false;" data-product-id="{{ $product->id }}" data-file-type="product_images">
-                <i class="fas fa-images"></i> ნახეთ სურათები
-            </button>
+{{--            <button type="button" class="btn btn-primary btn-sm" onclick="showProductFiles({{ $product->id }}, 'product_images'); return false;" data-product-id="{{ $product->id }}" data-file-type="product_images">--}}
+{{--                <i class="fas fa-images"></i> ნახეთ სურათები--}}
+{{--            </button>--}}
             @if($product->standard)
             <button type="button" class="btn btn-info btn-sm" onclick="showProductFiles({{ $product->id }}, 'standard_files'); return false;" data-product-id="{{ $product->id }}" data-file-type="standard_files">
                 <i class="fas fa-file-alt"></i> ნახეთ სტანდარტის ფაილები
@@ -85,10 +85,10 @@
 
     <!-- Include the product files JavaScript -->
     <script src="{{ asset('js/product-files.js') }}"></script>
-    
+
     <!-- Include the modal fix JavaScript -->
     <script src="{{ asset('js/modal-fix.js') }}"></script>
-   
+
    <!-- Add product approval/rejection actions -->
    <div class="mt-3 mb-3 card">
        <div class="card-body">
@@ -111,7 +111,7 @@
                        @endif
                    </div>
                </div>
-               
+
                <div class="row mt-3">
                    <div class="col-12">
                        <div class="d-flex justify-content-end">
@@ -168,13 +168,13 @@
            </form>
        </div>
    </div>
-   
+
    <script>
        lightbox.option({
            'resizeDuration': 200,
            'wrapAround': true
        });
-       
+
        // Add direct click handlers to the file buttons
        document.addEventListener('DOMContentLoaded', function() {
            // File buttons handlers
@@ -184,18 +184,18 @@
                    e.preventDefault();
                    const productId = this.getAttribute('data-product-id');
                    const fileType = this.getAttribute('data-file-type');
-                   
+
                    if (productId && fileType) {
                        // Try multiple approaches to open the modal
                        try {
                            showProductFiles(productId, fileType);
-                           
+
                            // Additional fallback: If after 500ms the modal is still not visible, use direct approach
                            setTimeout(function() {
                                const modal = document.getElementById('productFilesModal');
                                if (modal && !modal.classList.contains('show')) {
                                    showModal('productFilesModal');
-                                   
+
                                    // Try to load files
                                    fetch(`/api/public/product-files/${productId}`)
                                        .then(response => response.json())
@@ -205,21 +205,21 @@
                                                // Set modal title
                                                const modalTitle = document.getElementById('productFilesModalLabel');
                                                if (modalTitle) {
-                                                   modalTitle.textContent = fileType === 'product_images' ? 
+                                                   modalTitle.textContent = fileType === 'product_images' ?
                                                        'პროდუქტის სურათები' : 'სტანდარტის ფაილები';
                                                }
-                                               
+
                                                // Clear container
                                                filesContainer.innerHTML = '';
-                                               
+
                                                product[fileType].forEach(file => {
                                                    const isImage = file.mime_type && file.mime_type.startsWith('image/');
                                                    filesContainer.innerHTML += `
                                                        <div class="col-sm-6 col-md-4 mb-3">
                                                            <div class="card">
                                                                <div class="card-body text-center">
-                                                                   ${isImage ? 
-                                                                       `<img src="${file.url}" class="img-thumbnail" style="max-height: 150px;">` : 
+                                                                   ${isImage ?
+                                                                       `<img src="${file.url}" class="img-thumbnail" style="max-height: 150px;">` :
                                                                        `<i class="fas fa-file fa-3x"></i>`
                                                                    }
                                                                    <p class="mt-2 mb-0 text-truncate">${file.name || file.file_name || 'ფაილი'}</p>
