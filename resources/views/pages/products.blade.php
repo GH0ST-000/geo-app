@@ -23,6 +23,7 @@
                                     <th class="" tabindex="0" aria-controls="dataTable" rowspan="1" colspan="1"  style="width: 205.57px;">პროდუქტის სახელი</th>
                                     <th class="" tabindex="0" aria-controls="dataTable" rowspan="1" colspan="1"  style="width: 175.57px;">მისამართი</th>
                                     <th class="" tabindex="0" aria-controls="dataTable" rowspan="1" colspan="1"  style="width: 175.57px;">მოცულობა</th>
+                                    <th class="" tabindex="0" aria-controls="dataTable" rowspan="1" colspan="1"  style="width: 175.57px;">მოთხოვნა ვალიდურია</th>
                                     <th class="" tabindex="0" aria-controls="dataTable" rowspan="1" colspan="1"  style="width: 100.57px;">სტატუსი</th>
                                     <th class="" tabindex="0" aria-controls="dataTable" rowspan="1" colspan="1"  style="width: 175.57px;">ქმედება</th>
 
@@ -43,7 +44,7 @@
                                         <td class="align-middle" data-bs-toggle="tooltip" data-bs-placement="top" data-bs-title="{{$product->product_description}}" >
                                             {{ Str::limit($product->product_description, 20, '...') }}
                                         </td>
-
+                                        <td>{{$product->end_date}}</td>
                                         <td class="align-middle">
                                             @if($product->reject_reason)
                                                 <span class="badge bg-danger" data-bs-toggle="tooltip" data-bs-placement="top"
@@ -54,6 +55,7 @@
                                                 <span class="badge bg-secondary">დასადასტურებელი</span>
                                             @endif
                                         </td>
+
 
                                         <td class="">
                                        <div class="d-flex justify-content-between">
