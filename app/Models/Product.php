@@ -29,6 +29,7 @@ class Product extends Model implements HasMedia
         'standard_group_id',
         'is_verified',
         'reject_reason',
+        'end_date'
     ];
 
     /**
@@ -40,7 +41,7 @@ class Product extends Model implements HasMedia
         'is_active' => 'boolean',
         'is_verified' => 'boolean',
     ];
-    
+
     /**
      * The "booted" method of the model.
      * This ensures all associated files are properly deleted
@@ -51,7 +52,7 @@ class Product extends Model implements HasMedia
     protected static function boot()
     {
         parent::boot();
-        
+
         // When a product is about to be deleted
         static::deleting(function ($product) {
             // Clear all media collections
@@ -80,7 +81,7 @@ class Product extends Model implements HasMedia
                     ->width(150)
                     ->height(150)
                     ->queued();
-                
+
                 $this->addMediaConversion('medium')
                     ->width(400)
                     ->height(400)
@@ -95,7 +96,7 @@ class Product extends Model implements HasMedia
                         ->width(150)
                         ->height(150)
                         ->queued();
-                    
+
                     $this->addMediaConversion('medium')
                         ->width(400)
                         ->height(400)
@@ -113,20 +114,20 @@ class Product extends Model implements HasMedia
     {
         $images = $this->getMedia('product_images');
         $urls = [];
-        
+
         foreach ($images as $image) {
             $urls[] = [
                 'id' => $image->id,
                 'original' => $image->getUrl(),
-                'thumb' => $image->hasGeneratedConversion('thumb') 
-                    ? $image->getUrl('thumb') 
+                'thumb' => $image->hasGeneratedConversion('thumb')
+                    ? $image->getUrl('thumb')
                     : $image->getUrl(),
-                'medium' => $image->hasGeneratedConversion('medium') 
-                    ? $image->getUrl('medium') 
+                'medium' => $image->hasGeneratedConversion('medium')
+                    ? $image->getUrl('medium')
                     : $image->getUrl(),
             ];
         }
-        
+
         return $urls;
     }
 
@@ -139,7 +140,7 @@ class Product extends Model implements HasMedia
     {
         $files = $this->getMedia('standard_files');
         $urls = [];
-        
+
         foreach ($files as $file) {
             $urls[] = [
                 'id' => $file->id,
@@ -161,7 +162,7 @@ class Product extends Model implements HasMedia
                 'medium' => strpos($file->mime_type, 'image/') === 0 && $file->hasGeneratedConversion('medium') ? $file->getUrl('medium') : null,
             ];
         }
-        
+
         return $urls;
     }
 }
