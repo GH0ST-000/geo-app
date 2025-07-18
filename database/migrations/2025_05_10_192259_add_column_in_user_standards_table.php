@@ -12,6 +12,8 @@ return new class extends Migration
     public function up(): void
     {
         Schema::table('user_standards', function (Blueprint $table) {
+            $table->string('group_id')->nullable()->after('user_id');
+            $table->index('group_id');
             $table->boolean('is_verified')->after('group_id')->default(false);
         });
     }
@@ -22,6 +24,8 @@ return new class extends Migration
     public function down(): void
     {
         Schema::table('user_standards', function (Blueprint $table) {
+            $table->dropIndex(['group_id']);
+            $table->dropColumn('group_id');
             $table->dropColumn('is_verified');
         });
     }
